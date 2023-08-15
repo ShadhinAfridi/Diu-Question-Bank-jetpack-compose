@@ -20,49 +20,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.fourdevs.diuquestionbank.data.Course
-import com.fourdevs.diuquestionbank.data.archCourseList
-import com.fourdevs.diuquestionbank.data.bsCourseList
-import com.fourdevs.diuquestionbank.data.cisCourseList
-import com.fourdevs.diuquestionbank.data.civilCourseList
-import com.fourdevs.diuquestionbank.data.cseCourseList
-import com.fourdevs.diuquestionbank.data.eCourseList
-import com.fourdevs.diuquestionbank.data.eeeCourseList
-import com.fourdevs.diuquestionbank.data.englishCourseList
-import com.fourdevs.diuquestionbank.data.esdmCourseList
 import com.fourdevs.diuquestionbank.data.getCourseList
-import com.fourdevs.diuquestionbank.data.iceCourseList
-import com.fourdevs.diuquestionbank.data.itmCourseList
-import com.fourdevs.diuquestionbank.data.jmcCourseList
-import com.fourdevs.diuquestionbank.data.lawCourseList
-import com.fourdevs.diuquestionbank.data.mctCourseList
-import com.fourdevs.diuquestionbank.data.nfeCourseList
-import com.fourdevs.diuquestionbank.data.pessCourseList
-import com.fourdevs.diuquestionbank.data.phCourseList
-import com.fourdevs.diuquestionbank.data.pharmacyCourseList
-import com.fourdevs.diuquestionbank.data.reCourseList
-import com.fourdevs.diuquestionbank.data.sweCourseList
-import com.fourdevs.diuquestionbank.data.teCourseList
-import com.fourdevs.diuquestionbank.data.thmCourseList
 import com.fourdevs.diuquestionbank.ui.navigation.QuestionList
+import com.fourdevs.diuquestionbank.viewmodel.QuestionViewModel
 
 @SuppressLint("UnrememberedMutableState")
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CourseListScreen(
-    screenName: String?,
     departmentName: String?,
     shift: String?,
     exam: String?,
-    navController: NavHostController
+    navController: NavHostController,
+    questionViewModel: QuestionViewModel
 ) {
-
 
 
     Scaffold(
@@ -79,9 +57,9 @@ fun CourseListScreen(
                         department = departmentName,
                         shift = shift!!,
                         exam = exam!!,
-                        screenName = screenName!!,
-                        navController
-                   )
+                        navController,
+                        questionViewModel
+                    )
                 }
             }
         }
@@ -97,8 +75,8 @@ fun CourseListItem(
     department: String,
     shift: String,
     exam: String,
-    screenName: String,
-    navController: NavHostController
+    navController: NavHostController,
+    questionViewModel: QuestionViewModel
 ) {
 
     val words = name.split(" ")
@@ -110,14 +88,29 @@ fun CourseListItem(
         }
     }
 
+    questionViewModel.getQuestionCountByName(department, name, shift, exam)
+
+    val courseCountState: State<Map<String, Int>> = questionViewModel.courseCountFlow.collectAsState(initial = emptyMap())
+
+    val currentCourseCounts: Map<String, Int> = courseCountState.value
+
+    val countText = currentCourseCounts[name]?.let { count ->
+        if (count > 1) {
+            "$count Questions"
+        } else {
+            "$count Question"
+        }
+    } ?: "Loading.."
+
 
     ElevatedCard(
         onClick = {
-            navController.navigate( QuestionList.route+"/$department")
+            navController.navigate(QuestionList.route + "/$department" + "/$name" + "/$shift" + "/$exam")
         },
         modifier = Modifier
             .padding(vertical = 5.dp, horizontal = 10.dp)
-            .fillMaxWidth()
+            .fillMaxWidth(),
+        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
     ) {
 
         Row(
@@ -165,7 +158,7 @@ fun CourseListItem(
                 )
 
                 Text(
-                    text = "400 Questions",
+                    text = countText,
                     maxLines = 1,
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier

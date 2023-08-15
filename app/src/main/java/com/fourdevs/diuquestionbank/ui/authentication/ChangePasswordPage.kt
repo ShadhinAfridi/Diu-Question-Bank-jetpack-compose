@@ -79,7 +79,7 @@ private fun ChangePassword(navController: NavHostController, authViewModel: Auth
             if(authViewModel.checkInternetConnection()) {
                 if(password.isNotEmpty() && confirmPassword.isNotEmpty()) {
                     if(password.length>=6 && confirmPassword.length>=6 && password==confirmPassword) {
-                        authViewModel.updateUserPassword(authViewModel.getString(Constants.KEY_EMAIL), password)
+                        authViewModel.updateUserPassword(authViewModel.getString(Constants.KEY_EMAIL)!!, password)
                         buttonClicked = true
                     } else {
                         showToast(context,"Password don't match!")

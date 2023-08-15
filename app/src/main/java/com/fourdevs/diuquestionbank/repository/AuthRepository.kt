@@ -4,6 +4,7 @@ import com.fourdevs.diuquestionbank.core.ApiClient
 import com.fourdevs.diuquestionbank.core.InternetConnection
 import com.fourdevs.diuquestionbank.core.SendEmail
 import com.fourdevs.diuquestionbank.data.Resource
+import com.fourdevs.diuquestionbank.models.ApiUserResponse
 import com.fourdevs.diuquestionbank.utilities.await
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
@@ -80,6 +81,10 @@ class AuthRepository @Inject constructor(
 
     suspend fun verifyUser(userId: String): Resource<Unit> {
         return apiClient.verifyUser(userId)
+    }
+
+    suspend fun getUserDataById(userId: String): ApiUserResponse {
+        return apiClient.getUserById(userId)
     }
 
 

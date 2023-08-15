@@ -266,10 +266,12 @@ fun dropDownField(modifier: Modifier, label: String, options: List<String>): Str
                 )
             },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            colors = TextFieldDefaults.textFieldColors(
-                containerColor = Color.Transparent,
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                unfocusedIndicatorColor = LiteIconColor,
                 unfocusedLabelColor = LiteIconColor,
-                unfocusedIndicatorColor = LiteIconColor
             ),
 
             )
@@ -308,7 +310,6 @@ fun yearList(): List<String> {
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun uploadScreen(
     list: List<String>,
@@ -337,10 +338,12 @@ fun uploadScreen(
             .fillMaxWidth()
             .padding(vertical = 5.dp, horizontal = 10.dp),
         label = { Text(text = label) },
-        colors = TextFieldDefaults.textFieldColors(
-            containerColor = Color.Transparent,
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            unfocusedIndicatorColor = LiteIconColor,
             unfocusedLabelColor = LiteIconColor,
-            unfocusedIndicatorColor = LiteIconColor
         ),
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text, imeAction = ImeAction.Next

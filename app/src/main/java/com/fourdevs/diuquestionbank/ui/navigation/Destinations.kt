@@ -19,12 +19,6 @@ object Questions: Destinations {
     override val title = "Questions"
 }
 
-object Solutions: Destinations {
-    override val route = "Solutions"
-    override val icon = R.drawable.solutions
-    override val title = "Solutions"
-}
-
 object Menu: Destinations {
     override val route = "Menu"
     override val icon = R.drawable.menu

@@ -14,6 +14,8 @@ object Constants {
     const val KEY_IS_VERIFICATION_PAGE = "verificationPage"
     const val KEY_RECOVER = "recover"
     const val KEY_USER_TOKEN = "userToken"
+    const val KEY_USER_DEPARTMENT = "userDepartment"
+    const val KEY_USER_ABOUT = "userAbout"
 
 
     //user dao

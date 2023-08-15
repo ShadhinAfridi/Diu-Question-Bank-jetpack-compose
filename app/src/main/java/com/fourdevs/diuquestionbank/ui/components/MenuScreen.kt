@@ -104,7 +104,7 @@ fun MenuRowItem(imageId: Int, title: String, onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier
             .padding(5.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.background)
+        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
     ) {
 
         Row(

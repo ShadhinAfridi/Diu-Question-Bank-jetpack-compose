@@ -1,5 +1,7 @@
 package com.fourdevs.diuquestionbank.ui.components
 
+import android.graphics.Bitmap
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,10 +25,16 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -153,16 +161,20 @@ fun AccountTopAppBar(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeAppBar(viewModel: AuthViewModel) {
+    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+    viewModel.getString(Constants.KEY_USER_PROFILE_PIC)?.let {
+        bitmap = viewModel.bitmapFromEncodedString(it)
+    }
     TopAppBar(
         title = {
             Column(modifier = Modifier.padding(horizontal = 2.dp)) {
                 Text(
-                    text = viewModel.getString(Constants.KEY_NAME),
+                    text = viewModel.getString(Constants.KEY_NAME)!!,
                     style = MaterialTheme.typography.titleSmall,
                     color = Color.White
                 )
                 Text(
-                    text = viewModel.getString(Constants.KEY_EMAIL),
+                    text = viewModel.getString(Constants.KEY_EMAIL)!!,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.White
                 )
@@ -180,7 +192,9 @@ fun HomeAppBar(viewModel: AuthViewModel) {
                     .size(48.dp)
             ) {
                 Image(
-                    painterResource(id = R.drawable.flower),
+                    painter = if (bitmap == null) painterResource(id = R.drawable.flower) else BitmapPainter(
+                        bitmap?.asImageBitmap()!!
+                    ),
                     contentDescription = "Profile Picture",
                     modifier = Modifier
                         .size(48.dp)

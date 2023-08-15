@@ -1,11 +1,14 @@
 package com.fourdevs.diuquestionbank.viewmodel
 
+import android.graphics.Bitmap
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fourdevs.diuquestionbank.data.Resource
+import com.fourdevs.diuquestionbank.models.UserInfo
 import com.fourdevs.diuquestionbank.repository.AuthRepository
 import com.fourdevs.diuquestionbank.repository.CommonRepository
+import com.fourdevs.diuquestionbank.repository.UserRepository
 import com.fourdevs.diuquestionbank.utilities.Constants
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +22,8 @@ import kotlin.random.Random
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val repository: AuthRepository,
-    private val repositoryCommon: CommonRepository
+    private val repositoryCommon: CommonRepository,
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _loginFlow = MutableStateFlow<Resource<FirebaseUser>?>(null)
@@ -34,6 +38,8 @@ class AuthViewModel @Inject constructor(
     private var _passwordChangeFlow = MutableStateFlow<Resource<Unit>?>(null)
     val passwordChangeFlow = _passwordChangeFlow.asStateFlow()
 
+    private val _userInfoFlow = MutableStateFlow<UserInfo?>(null)
+    val userInfoFlow = _userInfoFlow.asStateFlow()
 
 
     val currentUser: FirebaseUser?
@@ -62,6 +68,12 @@ class AuthViewModel @Inject constructor(
         repositoryCommon.clearPreferences()
         _loginFlow.value = null
         _signupFlow.value = null
+    }
+
+    fun getUserInfo(
+        id:String
+    ) = viewModelScope.launch {
+        _userInfoFlow.value = userRepository.getUserInfo(id)
     }
 
     fun getIdToken(user: FirebaseUser) = viewModelScope.launch{
@@ -113,8 +125,13 @@ class AuthViewModel @Inject constructor(
         repositoryCommon.putBoolean(key, value)
     }
 
-    fun getString(key: String) : String = repositoryCommon.getSting(key)
+    fun getString(key: String) : String? = repositoryCommon.getSting(key)
 
     fun getBoolean(key: String) : Boolean = repositoryCommon.getBoolean(key)
+
+    fun bitmapFromEncodedString(encodedImage: String): Bitmap {
+        return userRepository.bitmapFromEncodedString(encodedImage)
+    }
+
 
 }

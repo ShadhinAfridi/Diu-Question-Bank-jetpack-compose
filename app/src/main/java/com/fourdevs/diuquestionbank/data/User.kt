@@ -21,16 +21,8 @@ data class User(
     @ColumnInfo(name = "is_admin") val is_admin: Int
 )
 
-@Serializable
-data class UserResponse(
-    val success: Int,
-    val data: User
-)
 
-@Serializable
-data class ApiResponse(
-    val success: Int,
-    val message: String
-)
+
+
 
 

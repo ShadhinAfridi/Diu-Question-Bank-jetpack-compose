@@ -1,6 +1,5 @@
 package com.fourdevs.diuquestionbank.ui.components
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +28,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -63,6 +61,9 @@ import java.util.Locale
 @Composable
 fun QuestionList(
     department: String?,
+    courseName: String?,
+    shift: String?,
+    exam: String?,
     navController: NavHostController,
     questionViewModel: QuestionViewModel
 ) {
@@ -73,70 +74,80 @@ fun QuestionList(
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
-            GetData(navController = navController, departmentName = department!!, questionViewModel = questionViewModel)
+            GetData(
+                navController = navController,
+                departmentName = department!!,
+                courseName = courseName,
+                shift = shift,
+                exam = exam,
+                questionViewModel = questionViewModel
+            )
         }
     }
 
 }
 
 @Composable
-private fun GetData(navController: NavHostController, departmentName: String, questionViewModel: QuestionViewModel) {
-    var loading by remember{ mutableStateOf(false) }
-    var noData by remember{ mutableStateOf(false) }
+private fun GetData(
+    navController: NavHostController,
+    departmentName: String,
+    courseName: String?,
+    shift: String?,
+    exam: String?,
+    questionViewModel: QuestionViewModel
+) {
+    var loading by remember { mutableStateOf(false) }
     val questions = questionViewModel.questions?.collectAsLazyPagingItems()
     val scrollState = rememberLazyListState()
 
-
-
-
-    if(noData)  {
-        LaunchedEffect(scrollState) {
-            questionViewModel.getQuestionsByDepartment(departmentName)
-        }
+    LaunchedEffect(scrollState) {
+        questionViewModel.getQuestionsByCourse(departmentName, courseName!!, shift!!, exam!!)
     }
 
-
-    LazyColumn(state = scrollState){
-
-        if(questions==null) {
-            noData = true
-        }
+    LazyColumn(state = scrollState) {
 
         questions?.itemCount?.let {
-            items(it) { count->
-                QuestionListItem(navController = navController, question = questions[count]!!, questionViewModel = questionViewModel)
-                Log.d("Afridi", count.toString())
+            items(it) { count ->
+                QuestionListItem(
+                    navController = navController,
+                    question = questions[count]!!,
+                    questionViewModel = questionViewModel
+                )
             }
 
-            when(questions.loadState.append) {
+            when (questions.loadState.append) {
                 is LoadState.Error -> {
                     item {
                         ErrorItem()
                     }
                 }
+
                 LoadState.Loading -> {
                     loading = true
                     item {
                         LoadingItem()
                     }
                 }
+
                 is LoadState.NotLoading -> {
                     loading = false
                 }
             }
 
-            when(questions.loadState.refresh) {
+            when (questions.loadState.refresh) {
                 is LoadState.Error -> {
                     item {
                         ErrorItem()
                     }
                 }
+
                 LoadState.Loading -> {
                     loading = true
                     item {
                         LoadingItem()
                     }
                 }
+
                 is LoadState.NotLoading -> {
                     loading = false
                 }
@@ -144,11 +155,6 @@ private fun GetData(navController: NavHostController, departmentName: String, qu
         }
 
     }
-
-
-
-
-
 
 
 }
@@ -160,7 +166,8 @@ fun LoadingItem() {
             .padding(16.dp)
             .fillMaxWidth(),
         elevation = CardDefaults.cardElevation(8.dp),
-        shape = RoundedCornerShape(8.dp)
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Row(
             Modifier.fillMaxWidth(),
@@ -215,24 +222,31 @@ fun QuestionListItem(
     var loading by remember { mutableStateOf(false) }
     var showPdf by remember { mutableStateOf(false) }
 
-    if(showPdf) {
+    questionViewModel.getUploaderName(question.uploaderId)
+
+    val userResponse by questionViewModel.userResponseFlow.collectAsState()
+
+    val currentUser = userResponse[question.uploaderId]
+
+    if (showPdf) {
         downloadFlow.value?.let {
-            when(it) {
+            when (it) {
                 is Resource.Loading -> {
                     loading = true
                 }
+
                 is Resource.Failure -> {
                     loading = false
                     it.exception.printStackTrace()
                 }
+
                 is Resource.Success -> {
                     loading = false
-                    if(it.result == 100.0) {
-                        LaunchedEffect(true){
-                            navController.navigate(PdfViewer.route+"/${question.link}/${question.questionId}/${question.code}/${question.isApproved}/${question.departmentName}")
+                    if (it.result == 100.0) {
+                        LaunchedEffect(true) {
+                            navController.navigate(PdfViewer.route + "/${question.link}/${question.questionId}")
                         }
                     }
-                    Log.d("Afridi", it.result.toString())
                 }
             }
         }
@@ -247,12 +261,13 @@ fun QuestionListItem(
         onClick = {
             questionViewModel.downloadFile(question.link)
             showPdf = true
-        }
+        },
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-        ){
+        ) {
             Column(
                 modifier = Modifier.padding(16.dp)
             ) {
@@ -262,7 +277,7 @@ fun QuestionListItem(
                 ) {
                     Text(
                         text = question.code,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.weight(1f),
                         overflow = TextOverflow.Ellipsis
                     )
@@ -278,7 +293,8 @@ fun QuestionListItem(
                     style = MaterialTheme.typography.bodyLarge,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth(),
-                    textAlign = TextAlign.Start
+                    textAlign = TextAlign.Start,
+                    maxLines = 1
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
@@ -303,7 +319,7 @@ fun QuestionListItem(
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Uploader Name",
+                        text = currentUser?.displayName ?: "Loading...",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f),
                         overflow = TextOverflow.Ellipsis
@@ -322,70 +338,9 @@ fun QuestionListItem(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                Spacer(modifier = Modifier.height(6.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    TextButton(
-                        onClick = { /*TODO*/ }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.mode_comment),
-                            contentDescription = "Comment Icon",
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "2150",
-                            style = MaterialTheme.typography.bodySmall,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                    TextButton(onClick = { /*TODO*/ }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.download),
-                            contentDescription = "Download Icon",
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "5018",
-                            style = MaterialTheme.typography.bodySmall,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-
-                }
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    TextButton(onClick = { /*TODO*/ }) {
-                        Text(
-                            text = "Add a comment",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                    TextButton(onClick = { /*TODO*/ }) {
-                        Text(
-                            text = "Download",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-                }
             }
 
-            if(loading) {
+            if (loading) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -397,12 +352,7 @@ fun QuestionListItem(
 }
 
 
-
-
-
-
-
-fun dateConverter(dateString: String) : String{
+fun dateConverter(dateString: String): String {
     val inputFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss 'GMT'Z yyyy", Locale.ENGLISH)
     val outputFormat = SimpleDateFormat("dd-MM-yyyy", Locale.ENGLISH)
 

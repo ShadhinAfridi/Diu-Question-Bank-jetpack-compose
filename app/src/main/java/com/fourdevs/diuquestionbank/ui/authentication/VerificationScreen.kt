@@ -135,14 +135,14 @@ fun VerificationPage(navController: NavHostController, authViewModel: AuthViewMo
 
                         if(fromRecoveryPage) {
                             authViewModel.sendRecoverEmail(
-                                authViewModel.getString(Constants.KEY_EMAIL),
-                                authViewModel.getString(Constants.KEY_OTP)
+                                authViewModel.getString(Constants.KEY_EMAIL)!!,
+                                authViewModel.getString(Constants.KEY_OTP)!!
                             )
                         } else {
                             authViewModel.sentVerificationEmail(
-                                authViewModel.getString(Constants.KEY_NAME),
-                                authViewModel.getString(Constants.KEY_EMAIL),
-                                authViewModel.getString(Constants.KEY_OTP)
+                                authViewModel.getString(Constants.KEY_NAME)!!,
+                                authViewModel.getString(Constants.KEY_EMAIL)!!,
+                                authViewModel.getString(Constants.KEY_OTP)!!
                             )
                         }
 
@@ -213,8 +213,8 @@ fun VerificationPage(navController: NavHostController, authViewModel: AuthViewMo
                             verify = !verify
                             loading = !loading
                             authViewModel.sendWelcomeEmail(
-                                authViewModel.getString(Constants.KEY_NAME),
-                                authViewModel.getString(Constants.KEY_EMAIL)
+                                authViewModel.getString(Constants.KEY_NAME)!!,
+                                authViewModel.getString(Constants.KEY_EMAIL)!!
                             )
                             goToLogIn = !goToLogIn
                         }

@@ -31,9 +31,6 @@ class QuestionRepositoryOffline @Inject constructor(
 
     override suspend fun updateQuestion(
         id: String,
-        code: String,
-        name: String,
-        lt: String,
         isApproved: Int
     ) {
         TODO("Not yet implemented")
@@ -42,6 +39,28 @@ class QuestionRepositoryOffline @Inject constructor(
     override suspend fun getQuestionsByDepartment(
         department: String
     ): Flow<PagingData<Question>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getQuestionsByCourseName(
+        department: String,
+        courseName: String,
+        shift: String,
+        exam: String
+    ): Flow<PagingData<Question>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getQuestionCountByName(
+        department: String,
+        courseName: String,
+        shift: String,
+        exam: String
+    ): Int {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getQuestionCountByDepartment(department: String): Int {
         TODO("Not yet implemented")
     }
 

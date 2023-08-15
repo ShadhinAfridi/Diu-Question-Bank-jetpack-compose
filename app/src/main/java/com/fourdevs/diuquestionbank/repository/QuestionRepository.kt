@@ -9,7 +9,23 @@ import kotlinx.coroutines.flow.Flow
 
 interface QuestionRepository {
     suspend fun createQuestion(newQuestion: Question): Resource<Unit>
-    suspend fun downloadFile(fileName:String) : Resource<Double>
-    suspend fun updateQuestion(id:String, code:String, name:String, lt:String, isApproved:Int)
-    suspend fun getQuestionsByDepartment(department : String) : Flow<PagingData<Question>>
+    suspend fun downloadFile(fileName: String): Resource<Double>
+    suspend fun updateQuestion(id: String, isApproved: Int)
+    suspend fun getQuestionsByDepartment(department: String): Flow<PagingData<Question>>
+    suspend fun getQuestionsByCourseName(
+        department: String,
+        courseName: String,
+        shift: String,
+        exam: String
+    ): Flow<PagingData<Question>>
+
+    suspend fun getQuestionCountByName(
+        department: String,
+        courseName: String,
+        shift: String,
+        exam: String
+    ): Int
+
+    suspend fun getQuestionCountByDepartment(department: String): Int
+
 }

@@ -11,8 +11,8 @@ class CommonRepository @Inject constructor(
         preferenceManager.putString(key, value)
     }
 
-    fun getSting(key: String): String {
-        return preferenceManager.getString(key)!!
+    fun getSting(key: String): String? {
+        return preferenceManager.getString(key)
     }
 
     fun putBoolean(key: String, value: Boolean) {

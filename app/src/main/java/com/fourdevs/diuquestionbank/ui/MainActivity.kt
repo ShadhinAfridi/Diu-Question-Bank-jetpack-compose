@@ -15,12 +15,14 @@ import com.fourdevs.diuquestionbank.ui.theme.DIUQuestionBankTheme
 import com.fourdevs.diuquestionbank.utilities.Constants
 import com.fourdevs.diuquestionbank.viewmodel.AuthViewModel
 import com.fourdevs.diuquestionbank.viewmodel.QuestionViewModel
+import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val authViewModel : AuthViewModel by viewModels()
     private val questionViewModel : QuestionViewModel by viewModels()
+    private val userViewModel : UserViewModel by viewModels()
 
     @SuppressLint("CoroutineCreationDuringComposition")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,7 +40,8 @@ class MainActivity : ComponentActivity() {
                     App(
                         navController = rememberNavController(),
                         authViewModel = authViewModel,
-                        questionViewModel = questionViewModel
+                        questionViewModel = questionViewModel,
+                        userViewModel = userViewModel
                     )
                 }
             }

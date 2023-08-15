@@ -14,16 +14,17 @@ import com.fourdevs.diuquestionbank.ui.components.MenuScreen
 import com.fourdevs.diuquestionbank.ui.components.PdfViewerScreen
 import com.fourdevs.diuquestionbank.ui.components.QuestionList
 import com.fourdevs.diuquestionbank.ui.components.QuestionsScreen
-import com.fourdevs.diuquestionbank.ui.components.SolutionsScreen
 import com.fourdevs.diuquestionbank.ui.components.UploadScreen
 import com.fourdevs.diuquestionbank.viewmodel.AuthViewModel
 import com.fourdevs.diuquestionbank.viewmodel.QuestionViewModel
+import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
 
 @SuppressLint("ComposableNavGraphInComposeScope")
 fun NavGraphBuilder.bottomNavGraph(
     navController: NavHostController,
     authViewModel: AuthViewModel,
-    questionViewModel: QuestionViewModel
+    questionViewModel: QuestionViewModel,
+    userViewModel: UserViewModel
 ) {
     navigation(startDestination = Home.route, route = BottomNav.route) {
         composable(Home.route) {
@@ -32,47 +33,42 @@ fun NavGraphBuilder.bottomNavGraph(
         composable(Questions.route) {
             QuestionsScreen(navController, questionViewModel)
         }
-        composable(Solutions.route) {
-            SolutionsScreen(navController)
-        }
         composable(Account.route) {
             AccountScreen(navController)
         }
         composable(Menu.route) {
             MenuScreen(navController, authViewModel)
         }
-        composable(Upload.route + "/{id}") { it ->
+        composable(Upload.route + "/{id}") {
             val name = it.arguments?.getString("id")
             UploadScreen(navController, name)
         }
-        composable(Department.route +"/{screenName}" + "/{department}") {
-            val screenName = it.arguments?.getString("screenName")
+        composable(Department.route + "/{department}") {
             val departmentName = it.arguments?.getString("department")
-            DepartmentScreen(screenName, departmentName, navController)
+            DepartmentScreen(departmentName, navController)
         }
-        composable(CourseList.route + "/{screenName}" + "/{department}"+"/{shift}"+"/{exam}") {
-            val screenName = it.arguments?.getString("screenName")
+        composable(CourseList.route + "/{department}"+"/{shift}"+"/{exam}") {
             val departmentName = it.arguments?.getString("department")
             val shift = it.arguments?.getString("shift")
             val exam = it.arguments?.getString("exam")
-            CourseListScreen(screenName, departmentName, shift, exam, navController)
+            CourseListScreen(departmentName, shift, exam, navController, questionViewModel)
         }
-        composable(QuestionList.route + "/{department}") {
+        composable(QuestionList.route + "/{department}"+ "/{courseName}" + "/{shift}" + "/{exam}") {
             val department = it.arguments?.getString("department")
+            val courseName = it.arguments?.getString("courseName")
+            val shift = it.arguments?.getString("shift")
+            val exam = it.arguments?.getString("exam")
 
-            QuestionList(department, navController, questionViewModel)
+            QuestionList(department, courseName, shift, exam, navController, questionViewModel)
         }
-        composable(PdfViewer.route + "/{fileName}/{id}/{code}/{isApproved}/{departmentName}") {
+        composable(PdfViewer.route + "/{fileName}/{id}") {
             val fileName = it.arguments?.getString("fileName")
             val id = it.arguments?.getString("id")
-            val code = it.arguments?.getString("code")
-            val isApproved = it.arguments?.getInt("isApproved")
-            val departmentName = it.arguments?.getString("departmentName")
-            PdfViewerScreen(fileName, id, code, isApproved, departmentName ,questionViewModel, navController)
+            PdfViewerScreen(fileName, id, navController)
         }
 
         composable(EditProfileScreen.route) {
-            EditProfileScreen(navController)
+            EditProfileScreen(navController, userViewModel)
         }
 
     }

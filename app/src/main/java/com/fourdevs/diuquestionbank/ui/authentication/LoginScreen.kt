@@ -1,5 +1,6 @@
 package com.fourdevs.diuquestionbank.ui.authentication
 
+import android.util.Log
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardActions
@@ -31,7 +32,6 @@ import com.fourdevs.diuquestionbank.ui.navigation.ResetPassword
 import com.fourdevs.diuquestionbank.ui.navigation.SignUp
 import com.fourdevs.diuquestionbank.utilities.Constants
 import com.fourdevs.diuquestionbank.viewmodel.AuthViewModel
-import com.google.firebase.auth.FirebaseUser
 
 
 @Composable
@@ -54,6 +54,7 @@ private fun LogIn(
     val authResource = viewModel.loginFlow.collectAsState()
     val localFocusManager = LocalFocusManager.current
     val context = LocalContext.current
+    val userInfo = viewModel.userInfoFlow.collectAsState()
 
 
     AuthBackground(stringResource(id = R.string.log_in)) {
@@ -126,10 +127,38 @@ private fun LogIn(
                         loading = true
                     }
                     is Resource.Success -> {
-                        logInClicked=!logInClicked
-                        loading = false
                         val user = viewModel.currentUser
-                        GetUserData(user, viewModel, navController)
+                        user?.let {data->
+                            val name = data.displayName
+                            val emailVerified = data.isEmailVerified
+                            val uid = data.uid
+
+                            try{
+                                viewModel.getUserInfo(uid)
+                            } catch (e: Exception) {
+                                Log.d("Afridi", e.message.toString())
+                            }
+                            userInfo.value?.let { userInfo ->
+                                logInClicked=!logInClicked
+                                loading = false
+                                userInfo.department?.let { viewModel.putString(Constants.KEY_USER_DEPARTMENT, userInfo.department) }
+                                userInfo.about?.let { viewModel.putString(Constants.KEY_USER_ABOUT, userInfo.about) }
+                                userInfo.image?.let { viewModel.putString(Constants.KEY_USER_PROFILE_PIC, userInfo.image) }
+
+                                if(emailVerified) {
+                                    viewModel.putBoolean(Constants.KEY_IS_SIGNED_IN, true)
+                                    viewModel.putString(Constants.KEY_NAME, name!!)
+                                    viewModel.putString(Constants.KEY_EMAIL, email)
+                                    viewModel.putBoolean(Constants.KEY_IS_VERIFIED, true)
+                                    viewModel.putString(Constants.KEY_USER_ID, uid)
+                                    CompleteLogIn(navController)
+                                    viewModel.getIdToken(user)
+                                } else {
+                                    ShowToast(message = "User not verified!", context = LocalContext.current)
+                                    viewModel.logout()
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -145,39 +174,6 @@ private fun LogIn(
 }
 
 
-@Composable
-private fun GetUserData(
-    user: FirebaseUser?,
-    viewModel: AuthViewModel,
-    navController: NavHostController
-) {
-
-    user?.let {
-        val name = it.displayName
-        val email = it.email
-        val photoUrl = it.photoUrl
-        val emailVerified = it.isEmailVerified
-        val uid = it.uid
-
-        if(emailVerified) {
-            viewModel.putBoolean(Constants.KEY_IS_SIGNED_IN, true)
-            viewModel.putString(Constants.KEY_NAME, name!!)
-            viewModel.putString(Constants.KEY_EMAIL, email!!)
-            viewModel.putString(Constants.KEY_USER_PROFILE_PIC, photoUrl.toString())
-            viewModel.putBoolean(Constants.KEY_IS_VERIFIED, true)
-            viewModel.putString(Constants.KEY_USER_ID, uid)
-            CompleteLogIn(navController)
-            viewModel.getIdToken(user)
-
-        } else {
-            ShowToast(message = "User not verified!", context = LocalContext.current)
-            viewModel.logout()
-        }
-    }
-
-
-
-}
 
 @Composable
 private fun CompleteLogIn(navController: NavHostController) {

@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.CutCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -39,10 +38,8 @@ import androidx.navigation.NavHostController
 import com.fourdevs.diuquestionbank.R
 import com.fourdevs.diuquestionbank.ui.navigation.CourseList
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DepartmentScreen(
-    screenName: String?,
     departmentName: String?,
     navController: NavHostController
 ) {
@@ -81,7 +78,10 @@ fun DepartmentScreen(
 
                 RadioGroup(
                     stringResource(id = R.string.exam),
-                    listOf(stringResource(id = R.string.midterm), stringResource(id = R.string.final_exam)),
+                    listOf(
+                        stringResource(id = R.string.midterm),
+                        stringResource(id = R.string.final_exam)
+                    ),
                     exam
                 ) { selectedText ->
                     exam = selectedText
@@ -90,15 +90,13 @@ fun DepartmentScreen(
 
             NextButton(
                 modifier = Modifier
-                    .fillMaxWidth()
                     .align(Alignment.BottomCenter)
-                    .padding(5.dp),
+                    .padding(10.dp),
                 navController = navController,
                 departmentName = departmentName,
                 shift = shift,
                 exam = exam,
-                context = context,
-                screenName = screenName!!
+                context = context
             )
         }
     }
@@ -174,22 +172,20 @@ fun NextButton(
     departmentName: String?,
     shift: String,
     exam: String,
-    context: Context,
-    screenName:String
+    context: Context
 ) {
     FilledTonalButton(
         onClick = {
-            if(shift.isNotEmpty() && exam.isNotEmpty()) {
+            if (shift.isNotEmpty() && exam.isNotEmpty()) {
                 navController.navigate(
-                    CourseList.route+"/$screenName"+"/$departmentName"+"/$shift"+"/$exam"
+                    CourseList.route + "/$departmentName" + "/$shift" + "/$exam"
                 )
             } else {
-                Toast.makeText(context, "Select all field!", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Select all field!", Toast.LENGTH_SHORT).show()
             }
 
         },
-        modifier = modifier
-        ,
+        modifier = modifier.fillMaxWidth(),
         colors = ButtonDefaults
             .filledTonalButtonColors(
                 containerColor = MaterialTheme.colorScheme.primary,
