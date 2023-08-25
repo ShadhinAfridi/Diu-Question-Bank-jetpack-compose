@@ -1,5 +1,6 @@
 package com.fourdevs.diuquestionbank.ui.components
 
+import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
@@ -20,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -40,6 +43,9 @@ import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
 import coil.memory.MemoryCache
 import coil.request.ImageRequest
+import com.fourdevs.diuquestionbank.ui.ads.AdmobBanner
+import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
+import com.google.android.gms.ads.AdSize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -53,12 +59,13 @@ import kotlin.math.sqrt
 fun PdfViewerScreen(
     fileName: String?,
     id: String?,
-    navController: NavHostController
+    navController: NavHostController,
+    userViewModel: UserViewModel
 ) {
     val rootPath = File(LocalContext.current.cacheDir, "/Questions")
     val file = File(rootPath, fileName!!)
     val uri = file.toUri()
-
+    val activity = LocalContext.current as Activity
 
     Scaffold(
         topBar = {
@@ -66,7 +73,7 @@ fun PdfViewerScreen(
         }
     ) {
         Box(modifier = Modifier.padding(it)) {
-            PdfViewer(uri = uri)
+            PdfViewer(uri = uri, userViewModel = userViewModel)
         }
     }
 
@@ -77,11 +84,12 @@ fun PdfViewerScreen(
 fun PdfViewer(
     modifier: Modifier = Modifier,
     uri: Uri,
+    userViewModel: UserViewModel,
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(8.dp)
 ) {
-    var scale by remember { mutableStateOf(1f) }
+    var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
-    val rotationState = remember { mutableStateOf(0f) }
+    val rotationState = remember { mutableFloatStateOf(0f) }
     val rendererScope = rememberCoroutineScope()
     val mutex = remember { Mutex() }
     val renderer by produceState<PdfRenderer?>(null, uri) {
@@ -101,10 +109,10 @@ fun PdfViewer(
     val context = LocalContext.current
     val imageLoader = LocalContext.current.imageLoader
     val imageLoadingScope = rememberCoroutineScope()
-    var maxTranslationX by remember { mutableStateOf(0f) }
-    var maxTranslationY by remember { mutableStateOf(0f) }
-    var pageNo by remember { mutableStateOf(0) }
-    var totalPage by remember { mutableStateOf(0) }
+    var maxTranslationX by remember { mutableFloatStateOf(0f) }
+    var maxTranslationY by remember { mutableFloatStateOf(0f) }
+    var pageNo by remember { mutableIntStateOf(0) }
+    var totalPage by remember { mutableIntStateOf(0) }
 
     BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
         val width = with(LocalDensity.current) { maxWidth.toPx() }.toInt()
@@ -124,7 +132,7 @@ fun PdfViewer(
                                 x = (offset.x + pan.x).coerceIn(-maxTranslationX, maxTranslationX),
                                 y = (offset.y + pan.y).coerceIn(-maxTranslationY, maxTranslationY)
                             )
-                            rotationState.value += rotation // Update the mutable state
+                            rotationState.floatValue += rotation // Update the mutable state
                         }
                     }
                 }
@@ -205,6 +213,5 @@ fun PdfViewer(
         }
     }
 }
-
 
 

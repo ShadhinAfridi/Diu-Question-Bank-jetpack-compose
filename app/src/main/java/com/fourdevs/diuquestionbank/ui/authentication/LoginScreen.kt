@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,11 +16,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.fourdevs.diuquestionbank.R
@@ -52,26 +51,30 @@ private fun LogIn(
     var logInClicked by remember { mutableStateOf(false) }
     var loading by remember { mutableStateOf(false) }
     val authResource = viewModel.loginFlow.collectAsState()
-    val localFocusManager = LocalFocusManager.current
     val context = LocalContext.current
     val userInfo = viewModel.userInfoFlow.collectAsState()
+    val localFocusManager = LocalFocusManager.current
 
 
     AuthBackground(stringResource(id = R.string.log_in)) {
-        email = emailTextField(localFocusManager = localFocusManager)
-        Spacer(modifier = Modifier.height(20.dp))
-        password = textFieldPassword(
-            label = stringResource(id = R.string.password),
-            keyboardOptions =
-            KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions =
-            KeyboardActions(onNext = {
-                localFocusManager.clearFocus(true)
+        AuthTextField(
+            label = Constants.DATA_EMAIL,
+            keyboardActions = KeyboardActions(onNext = {
+                localFocusManager.moveFocus(FocusDirection.Down)
             })
-        )
+        ){
+            email = it
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        AuthTextField(
+            label = Constants.DATA_PASSWORD,
+            keyboardActions = KeyboardActions(onNext = {
+                localFocusManager.clearFocus(true)
+            }),
+            imeAction = ImeAction.Done
+        ){
+            password = it
+        }
 
         TextButton(
             onClick = {
@@ -83,7 +86,7 @@ private fun LogIn(
         ) {
             Text(
                 text = stringResource(id = R.string.forgotten_password),
-                color = MaterialTheme.colorScheme.secondary,
+                color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.labelLarge
             )
         }
@@ -91,8 +94,8 @@ private fun LogIn(
         Spacer(modifier = Modifier.height(30.dp))
 
         PrimaryColorButton(label = stringResource(id = R.string.log_in)) {
-            if(viewModel.checkInternetConnection()) {
-                if(password.length>=6 && isValidEmail(email)) {
+            if (viewModel.checkInternetConnection()) {
+                if (password.length >= 6 && isValidEmail(email)) {
                     viewModel.loginUser(email, password)
                     logInClicked = true
                     loading = true
@@ -115,37 +118,70 @@ private fun LogIn(
             )
         }
 
-        if(logInClicked) {
+        if (logInClicked) {
             authResource.value?.let {
                 when (it) {
                     is Resource.Failure -> {
                         ShowToast(message = it.exception.message.toString(), LocalContext.current)
-                        logInClicked=!logInClicked
+                        logInClicked = !logInClicked
                         loading = false
                     }
+
                     is Resource.Loading -> {
                         loading = true
                     }
+
                     is Resource.Success -> {
                         val user = viewModel.currentUser
-                        user?.let {data->
+                        user?.let { data ->
                             val name = data.displayName
                             val emailVerified = data.isEmailVerified
                             val uid = data.uid
 
-                            try{
+                            try {
                                 viewModel.getUserInfo(uid)
                             } catch (e: Exception) {
                                 Log.d("Afridi", e.message.toString())
                             }
                             userInfo.value?.let { userInfo ->
-                                logInClicked=!logInClicked
+                                logInClicked = !logInClicked
                                 loading = false
-                                userInfo.department?.let { viewModel.putString(Constants.KEY_USER_DEPARTMENT, userInfo.department) }
-                                userInfo.about?.let { viewModel.putString(Constants.KEY_USER_ABOUT, userInfo.about) }
-                                userInfo.image?.let { viewModel.putString(Constants.KEY_USER_PROFILE_PIC, userInfo.image) }
+                                userInfo.department?.let {
+                                    viewModel.putString(
+                                        Constants.KEY_USER_DEPARTMENT,
+                                        userInfo.department
+                                    )
+                                }
+                                userInfo.about?.let {
+                                    viewModel.putString(
+                                        Constants.KEY_USER_ABOUT,
+                                        userInfo.about
+                                    )
+                                }
+                                userInfo.image?.let {
+                                    viewModel.putString(
+                                        Constants.KEY_USER_PROFILE_PIC,
+                                        userInfo.image
+                                    )
+                                }
+                                viewModel.putString(
+                                    Constants.KEY_COUNT_APPROVED,
+                                    userInfo.approvedCount.toString()
+                                )
+                                viewModel.putString(
+                                    Constants.KEY_COUNT_REJECTED,
+                                    userInfo.rejectedCount.toString()
+                                )
+                                viewModel.putString(
+                                    Constants.KEY_COUNT_PENDING,
+                                    userInfo.pendingCount.toString()
+                                )
+                                viewModel.putString(
+                                    Constants.KEY_COUNT_UPLOAD,
+                                    "${userInfo.approvedCount + userInfo.rejectedCount + userInfo.pendingCount}"
+                                )
 
-                                if(emailVerified) {
+                                if (emailVerified) {
                                     viewModel.putBoolean(Constants.KEY_IS_SIGNED_IN, true)
                                     viewModel.putString(Constants.KEY_NAME, name!!)
                                     viewModel.putString(Constants.KEY_EMAIL, email)
@@ -154,7 +190,10 @@ private fun LogIn(
                                     CompleteLogIn(navController)
                                     viewModel.getIdToken(user)
                                 } else {
-                                    ShowToast(message = "User not verified!", context = LocalContext.current)
+                                    ShowToast(
+                                        message = "User not verified!",
+                                        context = LocalContext.current
+                                    )
                                     viewModel.logout()
                                 }
                             }
@@ -167,12 +206,11 @@ private fun LogIn(
 
     }
 
-    if(loading) {
+    if (loading) {
         ProgressBar()
     }
 
 }
-
 
 
 @Composable
@@ -185,3 +223,5 @@ private fun CompleteLogIn(navController: NavHostController) {
     }
     ShowToast(message = "Login successful!", context = LocalContext.current)
 }
+
+

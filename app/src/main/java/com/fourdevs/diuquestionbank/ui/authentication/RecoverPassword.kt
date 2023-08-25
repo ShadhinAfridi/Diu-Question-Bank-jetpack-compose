@@ -2,6 +2,7 @@ package com.fourdevs.diuquestionbank.ui.authentication
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -10,9 +11,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.fourdevs.diuquestionbank.R
@@ -34,7 +37,16 @@ fun RecoverPassword(navController: NavHostController, authViewModel: AuthViewMod
 
 
     AuthBackground(stringResource(id = R.string.reset_npassword)) {
-        email = emailTextField(localFocusManager = localFocusManager)
+        AuthTextField(
+            label = Constants.DATA_EMAIL,
+            keyboardActions = KeyboardActions(onNext = {
+                localFocusManager.clearFocus(true)
+            }),
+            imeAction = ImeAction.Done
+        ){
+            email = it
+        }
+
         Spacer(modifier = Modifier.height(20.dp))
 
         PrimaryColorButton(label = stringResource(id = R.string.reset)) {

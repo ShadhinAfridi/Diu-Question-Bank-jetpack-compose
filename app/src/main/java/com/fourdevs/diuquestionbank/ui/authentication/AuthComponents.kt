@@ -24,13 +24,14 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.Email
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,7 +55,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -68,8 +71,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fourdevs.diuquestionbank.R
-import com.fourdevs.diuquestionbank.ui.theme.CircleColor
-import com.fourdevs.diuquestionbank.ui.theme.LiteIconColor
+import com.fourdevs.diuquestionbank.utilities.Constants
 
 @Preview(showBackground = true)
 @Composable
@@ -89,70 +91,118 @@ fun ShowToast(message: String, context: Context) {
     Toast.makeText(context, message, Toast.LENGTH_LONG).show()
 }
 
-
 @Composable
-fun Circle(modifier: Modifier) {
-    Box(
-        modifier
-            .clip(shape = RoundedCornerShape(100))
-            .background(color = CircleColor)
-    )
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun emailTextField(localFocusManager: FocusManager): String {
-
-    var email by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+fun AuthTextField(
+    label: String,
+    imeAction: ImeAction = ImeAction.Next,
+    keyboardActions: KeyboardActions,
+    onValueChange: (String) -> Unit
+) {
+    var textField by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue("", TextRange(4, 20)))
     }
-    var isError by remember { mutableStateOf(false) }
-    var isValidEmail by remember { mutableStateOf(false) }
     val focusRequester = FocusRequester()
+    var isError by remember { mutableStateOf(false) }
+    var icon by remember {
+        mutableStateOf(Icons.Default.Person)
+    }
+    var keyboardType by remember {
+        mutableStateOf(KeyboardType.Email)
+    }
 
-    TextField(
-        value = email,
+    var errorMessage by remember {
+        mutableStateOf("This field is required")
+    }
+    var isVisibilityClicked by remember { mutableStateOf(false) }
+
+    var focused by remember { mutableStateOf(false) }
+
+    when (label) {
+        Constants.DATA_NAME -> {
+            icon = Icons.Outlined.Person
+        }
+
+        Constants.DATA_EMAIL -> {
+            icon = Icons.Outlined.Email
+            keyboardType = KeyboardType.Email
+            if (!isValidEmail(textField.text) && textField.text.isNotEmpty()) {
+                errorMessage = "Invalid email format"
+                isError = true
+            }
+        }
+
+        Constants.DATA_PASSWORD, Constants.DATA_CONFIRM_PASSWORD -> {
+            icon = Icons.Outlined.Lock
+            keyboardType = KeyboardType.Password
+            if (textField.text.length in 1..5) {
+                errorMessage = "Minimum 6 characters required"
+                isError = true
+            }
+        }
+
+
+
+    }
+
+    TextField(value = textField,
         onValueChange = {
-            email = it
+            textField = it
+            onValueChange(it.text)
             isError = it.text.isEmpty()
-            isValidEmail = it.text.isNotEmpty() && !isValidEmail(it.text)
         },
         modifier = Modifier
             .fillMaxWidth()
             .focusRequester(focusRequester)
             .onFocusChanged { focusState ->
-                if (focusState.isFocused && email.text.isEmpty()) isError = true
+                if(focusState.isFocused) {
+                    focused = true
+                    if (focusState.isFocused && textField.text.isEmpty()) isError = true
+                } else focused = false
             },
-        label = { Text(text = stringResource(id = R.string.email)) },
+        label = { Text(text = label) },
         leadingIcon = {
             Icon(
-                imageVector = Icons.Outlined.Email,
-                contentDescription = stringResource(id = R.string.email),
-                tint = LiteIconColor
+                imageVector = icon,
+                contentDescription = label,
+                tint = if (isError) {
+                    MaterialTheme.colorScheme.error
+                } else if(focused) {
+                    MaterialTheme.colorScheme.primary
+                } else MaterialTheme.colorScheme.onBackground
             )
         },
-        colors = TextFieldDefaults.textFieldColors(
-            containerColor = Color.Transparent,
-            unfocusedLabelColor = LiteIconColor,
-            unfocusedIndicatorColor = LiteIconColor
+        trailingIcon = {
+            if (label == Constants.DATA_PASSWORD || label == Constants.DATA_CONFIRM_PASSWORD) {
+                IconButton(onClick = { isVisibilityClicked = !isVisibilityClicked }) {
+                    Icon(
+                        painterResource(id = if (isVisibilityClicked) R.drawable.visibility else R.drawable.visibility_off),
+                        contentDescription = stringResource(id = R.string.password),
+                        tint = if (isVisibilityClicked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground
+                    )
+                }
+            }
+        },
+        visualTransformation = if (label == Constants.DATA_PASSWORD || label == Constants.DATA_CONFIRM_PASSWORD) {
+            if (isVisibilityClicked) VisualTransformation.None else PasswordVisualTransformation()
+        } else VisualTransformation.None,
+        colors = TextFieldDefaults.colors(
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            errorContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
         ),
-        keyboardOptions =
-        KeyboardOptions(
-            keyboardType = KeyboardType.Email,
-            imeAction = ImeAction.Next
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType, imeAction = imeAction
         ),
-        keyboardActions = KeyboardActions(onNext = {
-            localFocusManager.moveFocus(FocusDirection.Down)
-        }),
-        isError = isError || isValidEmail,
+        keyboardActions = keyboardActions,
+        isError = isError,
         supportingText = {
-            if (isError) ErrorMessage(label = stringResource(id = R.string.required))
-            if (isValidEmail) ErrorMessage(label = "Invalid email format")
+            if (isError) ErrorMessage(label = errorMessage)
         }
 
     )
-
-    return email.text
 
 }
 
@@ -169,71 +219,6 @@ fun ErrorMessage(label: String) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun textFieldPassword(
-    label: String,
-    keyboardOptions: KeyboardOptions,
-    keyboardActions: KeyboardActions
-): String {
-
-    var password by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue("", TextRange(6, 20)))
-    }
-    val isVisibilityClicked = remember { mutableStateOf(false) }
-    var isError by remember { mutableStateOf(false) }
-    var lengthError by remember { mutableStateOf(false) }
-    val focusRequester = FocusRequester()
-
-    TextField(
-        value = password,
-        onValueChange = {
-            password = it
-            isError = it.text.isEmpty()
-            lengthError = it.text.isNotEmpty() && it.text.length < 6
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(focusRequester)
-            .onFocusChanged { focusState ->
-                if (focusState.isFocused && password.text.isEmpty()) isError = true
-            },
-        label = { Text(text = label) },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Outlined.Lock,
-                contentDescription = stringResource(id = R.string.password),
-                tint = LiteIconColor
-            )
-        },
-        trailingIcon = {
-            IconButton(onClick = { isVisibilityClicked.value = !isVisibilityClicked.value }) {
-                Icon(
-                    painterResource(id = if (isVisibilityClicked.value) R.drawable.visibility else R.drawable.visibility_off),
-                    contentDescription = stringResource(id = R.string.password),
-                    tint = if (isVisibilityClicked.value) MaterialTheme.colorScheme.primary else LiteIconColor
-                )
-            }
-        },
-        colors = TextFieldDefaults.textFieldColors(
-            containerColor = Color.Transparent,
-            unfocusedLabelColor = LiteIconColor,
-            unfocusedIndicatorColor = LiteIconColor,
-        ),
-        visualTransformation = if (isVisibilityClicked.value) VisualTransformation.None else PasswordVisualTransformation(),
-        keyboardOptions = keyboardOptions,
-        keyboardActions = keyboardActions,
-        isError = isError || lengthError,
-        supportingText = {
-            if (isError) ErrorMessage(label = stringResource(id = R.string.required))
-            if (lengthError) ErrorMessage(label = "Minimum 6 characters required")
-        }
-
-    )
-
-    return password.text
-
-}
 
 @Composable
 fun ButtonDivider() {
@@ -245,7 +230,7 @@ fun ButtonDivider() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Divider(
-            color = LiteIconColor,
+            color = MaterialTheme.colorScheme.onBackground,
             thickness = 2.dp,
             modifier = Modifier
                 .weight(1f)
@@ -253,11 +238,11 @@ fun ButtonDivider() {
         )
         Text(
             text = stringResource(id = R.string.or),
-            color = LiteIconColor,
+            color = MaterialTheme.colorScheme.onBackground,
             modifier = Modifier.padding(horizontal = 8.dp)
         )
         Divider(
-            color = LiteIconColor,
+            color = MaterialTheme.colorScheme.onBackground,
             thickness = 2.dp,
             modifier = Modifier
                 .weight(1f)
@@ -270,17 +255,15 @@ fun ButtonDivider() {
 fun PrimaryColorButton(label: String, onClick: () -> Unit) {
     FilledTonalButton(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth(),
-        colors = ButtonDefaults
-            .filledTonalButtonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-            ),
+        modifier = Modifier.fillMaxWidth(),
+        colors = ButtonDefaults.filledTonalButtonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+        ),
         shape = RoundedCornerShape(20.dp),
         content = {
             Text(
                 text = label,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
         },
@@ -292,77 +275,22 @@ fun PrimaryColorButton(label: String, onClick: () -> Unit) {
 fun BackgroundLessButton(label: String, onClick: () -> Unit) {
     OutlinedButton(
         onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth(),
-        colors = ButtonDefaults
-            .outlinedButtonColors(
-                containerColor = Color.Transparent
-            ),
+        modifier = Modifier.fillMaxWidth(),
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = Color.Transparent
+        ),
         shape = RoundedCornerShape(20.dp),
         content = {
             Text(
                 text = label,
-                color = LiteIconColor,
+                color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
         },
-        border = BorderStroke(1.dp, color = LiteIconColor)
+        border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.onBackground)
     )
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun nameTextField(localFocusManager: FocusManager): String {
-    var userName by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue("", TextRange(4, 20)))
-    }
-    var isError by remember { mutableStateOf(false) }
-    val focusRequester = FocusRequester()
-
-    TextField(
-        value = userName,
-        onValueChange = {
-            userName = it
-            isError = it.text.isEmpty()
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .focusRequester(focusRequester)
-            .onFocusChanged { focusState ->
-                if (focusState.isFocused) isError = true
-            },
-        label = { Text(text = stringResource(id = R.string.name)) },
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Outlined.Person,
-                contentDescription = stringResource(id = R.string.name),
-                tint = LiteIconColor
-            )
-        },
-        colors = TextFieldDefaults.textFieldColors(
-            containerColor = Color.Transparent,
-            unfocusedLabelColor = LiteIconColor,
-            unfocusedIndicatorColor = LiteIconColor
-        ),
-        keyboardOptions =
-        KeyboardOptions(
-            keyboardType = KeyboardType.Text,
-            imeAction = ImeAction.Next
-        ),
-        keyboardActions = KeyboardActions(onNext = {
-            localFocusManager.moveFocus(FocusDirection.Down)
-        }),
-        isError = isError,
-        supportingText = {
-            if (isError) ErrorMessage(label = stringResource(id = R.string.required))
-        }
-
-
-    )
-
-    return userName.text
-}
 
 @Composable
 fun AuthBackground(title: String, design: @Composable (ColumnScope.() -> Unit)) {
@@ -377,8 +305,7 @@ fun AuthBackground(title: String, design: @Composable (ColumnScope.() -> Unit)) 
         else -> {
 
             Column(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.Start
             ) {
@@ -392,24 +319,12 @@ fun AuthBackground(title: String, design: @Composable (ColumnScope.() -> Unit)) 
                         )
                 ) {
 
-                    Circle(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .align(Alignment.TopEnd)
-                    )
-
-                    Circle(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .align(Alignment.BottomCenter)
-                    )
-
                     Text(
                         text = title,
                         modifier = Modifier
                             .align(Alignment.Center)
                             .padding(20.dp),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         style = MaterialTheme.typography.headlineMedium,
                         letterSpacing = 2.sp,
                         textAlign = TextAlign.Center
@@ -446,9 +361,12 @@ fun AuthBackground(title: String, design: @Composable (ColumnScope.() -> Unit)) 
     }
 }
 
-fun showNoInternet(context : Context) {
-    Toast.makeText(context, "Please check your internet connection and try again.", Toast.LENGTH_SHORT).show()
+fun showNoInternet(context: Context) {
+    Toast.makeText(
+        context, "Please check your internet connection and try again.", Toast.LENGTH_SHORT
+    ).show()
 }
-fun showToast(context : Context, message: String) {
+
+fun showToast(context: Context, message: String) {
     Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
 }

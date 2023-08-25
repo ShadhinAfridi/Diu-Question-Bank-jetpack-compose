@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -19,7 +18,6 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -61,25 +59,6 @@ fun Welcome(navController: NavHostController) {
 
         ) {
 
-        Circle(
-            modifier = Modifier
-                .size(100.dp)
-                .align(Alignment.CenterEnd)
-        )
-
-        Circle(
-            modifier = Modifier
-                .size(100.dp)
-                .align(Alignment.TopStart)
-        )
-
-        Circle(
-            modifier = Modifier
-                .size(100.dp)
-                .align(Alignment.BottomStart)
-        )
-
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -91,7 +70,7 @@ fun Welcome(navController: NavHostController) {
                 text = stringResource(id = R.string.app_name),
                 modifier = Modifier
                     .fillMaxWidth(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.headlineLarge,
                 textAlign = TextAlign.Start
             )
@@ -102,7 +81,7 @@ fun Welcome(navController: NavHostController) {
                 text = stringResource(id = R.string.app_intro),
                 modifier = Modifier
                     .fillMaxWidth(),
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary,
                 style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Start
             )
@@ -120,7 +99,7 @@ fun Welcome(navController: NavHostController) {
                     .fillMaxWidth(),
                 colors = ButtonDefaults
                     .outlinedButtonColors(
-                        containerColor = Color.White
+                        containerColor = MaterialTheme.colorScheme.onPrimary
                     ),
                 shape = RoundedCornerShape(20.dp),
                 content = {
@@ -130,7 +109,7 @@ fun Welcome(navController: NavHostController) {
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 },
-                border = BorderStroke(1.dp, color = Color.White)
+                border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.onPrimary)
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -152,11 +131,11 @@ fun Welcome(navController: NavHostController) {
                 content = {
                     Text(
                         text = stringResource(id = R.string.sign_up),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.padding(vertical = 8.dp)
                     )
                 },
-                border = BorderStroke(1.dp, color = Color.White),
+                border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.onPrimary),
             )
 
         }

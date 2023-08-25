@@ -73,3 +73,23 @@ object ChangePassword: IntentDestinations {
     override val route: String
         get() = "ChangePassword"
 }
+
+object AboutUs: IntentDestinations {
+    override val route: String
+        get() = "AboutUs"
+}
+
+object ContactUs: IntentDestinations {
+    override val route: String
+        get() = "ContactUs"
+}
+
+object Help: IntentDestinations {
+    override val route: String
+        get() = "Help"
+}
+
+object JoinUs: IntentDestinations {
+    override val route: String
+        get() = "JoinUs"
+}

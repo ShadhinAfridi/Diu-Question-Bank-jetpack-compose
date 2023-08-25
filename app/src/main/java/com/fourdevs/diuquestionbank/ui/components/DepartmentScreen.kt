@@ -28,7 +28,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -36,12 +35,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.fourdevs.diuquestionbank.R
+import com.fourdevs.diuquestionbank.ui.ads.AdmobBanner
 import com.fourdevs.diuquestionbank.ui.navigation.CourseList
+import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
+import com.google.android.gms.ads.AdSize
 
 @Composable
 fun DepartmentScreen(
     departmentName: String?,
-    navController: NavHostController
+    navController: NavHostController,
+    userViewModel: UserViewModel
 ) {
     var shift by remember {
         mutableStateOf("")
@@ -86,6 +89,9 @@ fun DepartmentScreen(
                 ) { selectedText ->
                     exam = selectedText
                 }
+                HomeCard {
+                    AdmobBanner(modifier = Modifier.fillMaxWidth(), adSize = AdSize.MEDIUM_RECTANGLE, userViewModel)
+                }
             }
 
             NextButton(
@@ -124,7 +130,7 @@ fun RadioGroup(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.background,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .padding(8.dp)
@@ -197,7 +203,7 @@ fun NextButton(
         content = {
             Text(
                 text = "Next",
-                color = Color.White,
+                color = MaterialTheme.colorScheme.background,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
         },

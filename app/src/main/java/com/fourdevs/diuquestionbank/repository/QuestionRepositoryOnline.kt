@@ -1,6 +1,5 @@
 package com.fourdevs.diuquestionbank.repository
 
-import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -10,20 +9,22 @@ import com.fourdevs.diuquestionbank.data.Resource
 import com.fourdevs.diuquestionbank.firebase.FirebaseCloudStorage
 import com.fourdevs.diuquestionbank.paging.CoursePagingSource
 import com.fourdevs.diuquestionbank.paging.QuestionPagingSource
+import com.fourdevs.diuquestionbank.paging.UserPagingSource
 import com.fourdevs.diuquestionbank.utilities.Constants
-import com.fourdevs.diuquestionbank.utilities.PreferenceManager
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
 class QuestionRepositoryOnline @Inject constructor(
     private val apiClient: ApiClient,
-    private val preferenceManager: PreferenceManager,
     private val storage: FirebaseCloudStorage
 ) : QuestionRepository {
 
 
-    override suspend fun createQuestion(newQuestion: Question): Resource<Unit> {
-        return apiClient.createQuestion(newQuestion, getToken())
+    override suspend fun createQuestion(
+        newQuestion: Question,
+        token: String
+    ): Resource<Unit> {
+        return apiClient.createQuestion(newQuestion, token)
     }
 
     override suspend fun downloadFile(fileName: String): Resource<Double> {
@@ -32,14 +33,29 @@ class QuestionRepositoryOnline @Inject constructor(
 
     override suspend fun updateQuestion(
         id: String,
-        isApproved: Int
+        isApproved: Int,
+        token: String
     ) {
-        apiClient.updateQuestion(id, isApproved, getToken())
+        apiClient.updateQuestion(id, isApproved, token)
     }
 
-    override suspend fun getQuestionsByDepartment(department: String): Flow<PagingData<Question>> {
+    override suspend fun getQuestionsByDepartment(
+        department: String,
+        token: String
+    ): Flow<PagingData<Question>> {
         val pager = Pager(PagingConfig(pageSize = 10, prefetchDistance = 5)) {
-            QuestionPagingSource(apiClient, department, getToken())
+            QuestionPagingSource(apiClient, department, token)
+        }
+
+        return pager.flow
+    }
+
+    override suspend fun getQuestionsByUser(
+        userId: String,
+        token: String
+    ): Flow<PagingData<Question>> {
+        val pager = Pager(PagingConfig(pageSize = 10, prefetchDistance = 5)) {
+            UserPagingSource(apiClient, userId, token)
         }
 
         return pager.flow
@@ -49,10 +65,11 @@ class QuestionRepositoryOnline @Inject constructor(
         department: String,
         courseName: String,
         shift: String,
-        exam: String
+        exam: String,
+        token: String
     ): Flow<PagingData<Question>> {
         val pager = Pager(PagingConfig(pageSize = 10, prefetchDistance = 5)) {
-            CoursePagingSource(apiClient, department, getToken(), courseName, shift, exam)
+            CoursePagingSource(apiClient, department, token, courseName, shift, exam)
         }
         return pager.flow
     }
@@ -61,17 +78,20 @@ class QuestionRepositoryOnline @Inject constructor(
         department: String,
         courseName: String,
         shift: String,
-        exam: String
+        exam: String,
+        token: String
     ): Int {
 
-        return apiClient.getQuestionCountByName(department, courseName, shift, exam, getToken())
+        return apiClient.getQuestionCountByName(department, courseName, shift, exam, token)
     }
 
-    override suspend fun getQuestionCountByDepartment(department: String): Int {
-        return apiClient.getQuestionCountByDepartment(department, getToken())
+    override suspend fun getQuestionCountByDepartment(
+        department: String,
+        token: String
+    ): Int {
+        return apiClient.getQuestionCountByDepartment(department, token)
     }
 
 
 
-    private fun getToken(): String = preferenceManager.getString(Constants.KEY_USER_TOKEN)!!
 }

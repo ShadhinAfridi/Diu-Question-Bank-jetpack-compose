@@ -1,5 +1,6 @@
 package com.fourdevs.diuquestionbank.ui.components
 
+import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Edit
@@ -59,6 +61,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.fourdevs.diuquestionbank.R
@@ -101,6 +104,7 @@ fun EditProfile(userViewModel: UserViewModel) {
         mutableStateOf(false)
     }
     val context = LocalContext.current
+    val activity = context as Activity
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
     var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
     val userId = userViewModel.getString(Constants.KEY_USER_ID)!!
@@ -179,10 +183,17 @@ fun EditProfile(userViewModel: UserViewModel) {
                     )
 
                     IconButton(
-                        onClick = { launcher.launch(arrayOf("image/*")) },
+                        onClick = {
+                            if(userViewModel.checkPermissions()) {
+                                launcher.launch(arrayOf("image/*"))
+                            } else {
+                                userViewModel.askPermission(activity)
+                            }
+
+                        },
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .background(color = Color.LightGray, shape = CircleShape)
+                            .background(color = MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape)
                             .size(48.dp)
                     ) {
                         Icon(
@@ -216,7 +227,8 @@ fun EditProfile(userViewModel: UserViewModel) {
                 value = about,
                 readonly = false,
                 icon = Icons.Outlined.Edit,
-                modifier = Modifier.height(150.dp)
+                modifier = Modifier.height(150.dp),
+                keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Done),
             ) { text ->
                 about = text
             }
@@ -262,6 +274,7 @@ fun TextFiledWithUnderLine(
     readonly: Boolean,
     icon: ImageVector,
     modifier: Modifier = Modifier,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Next),
     onValueChange: (String) -> Unit
 ) {
     TextField(
@@ -278,10 +291,11 @@ fun TextFiledWithUnderLine(
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
             disabledIndicatorColor = Color.Transparent,
-            focusedLabelColor = Color.Gray,
-            unfocusedLabelColor = Color.Gray,
-            disabledLabelColor = Color.Gray,
-        )
+            focusedLabelColor = MaterialTheme.colorScheme.surfaceVariant,
+            unfocusedLabelColor = MaterialTheme.colorScheme.surfaceVariant,
+            disabledLabelColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+        keyboardOptions = keyboardOptions,
     )
 }
 
@@ -315,9 +329,9 @@ fun DropDownDepartment(department: String, onValueChange: (String) -> Unit) {
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 disabledIndicatorColor = Color.Transparent,
-                focusedLabelColor = Color.Gray,
-                unfocusedLabelColor = Color.Gray,
-                disabledLabelColor = Color.Gray,
+                focusedLabelColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedLabelColor = MaterialTheme.colorScheme.surfaceVariant,
+                disabledLabelColor = MaterialTheme.colorScheme.surfaceVariant,
             ),
             leadingIcon = {
                 Icon(

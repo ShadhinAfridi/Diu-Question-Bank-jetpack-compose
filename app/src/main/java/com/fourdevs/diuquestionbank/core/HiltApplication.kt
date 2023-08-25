@@ -1,9 +1,9 @@
 package com.fourdevs.diuquestionbank.core
 
-import android.app.Application
+import androidx.multidex.MultiDexApplication
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
-class HiltApplication : Application() {
+class HiltApplication : MultiDexApplication(){
 
 }

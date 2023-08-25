@@ -60,20 +60,19 @@ import androidx.navigation.NavController
 import com.fourdevs.diuquestionbank.R
 import com.fourdevs.diuquestionbank.data.departments
 import com.fourdevs.diuquestionbank.data.getCourseList
-import com.fourdevs.diuquestionbank.ui.theme.LiteIconColor
 import java.util.Calendar
 
 @Composable
-fun UploadScreen(navController: NavController, name: String?) {
+fun UploadScreen(navController: NavController) {
     AnimatedVisibility(visible = true) {
-        Upload(navController = navController, name = name)
+        Upload(navController = navController)
     }
 }
 
 @SuppressLint("ResourceType", "UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Upload(navController: NavController, name: String?) {
+fun Upload(navController: NavController) {
 
     val localFocusManager = LocalFocusManager.current
     val departmentList = emptyList<String>().toMutableList()
@@ -109,7 +108,7 @@ fun Upload(navController: NavController, name: String?) {
 
     Scaffold(
         topBar = {
-            TopAppBarWithBackIcon(navController = navController, name = "Upload $name")
+            TopAppBarWithBackIcon(navController = navController, name = "Upload Question")
         }
     ) { padding ->
 
@@ -166,7 +165,7 @@ fun Upload(navController: NavController, name: String?) {
                     containerColor = Color.Transparent
                 ),
                 shape = RoundedCornerShape(5.dp),
-                border = BorderStroke(1.dp, color = LiteIconColor)
+                border = BorderStroke(1.dp, color = MaterialTheme.colorScheme.onBackground)
             ) {
                 UploadRow {
                     Icon(
@@ -210,7 +209,7 @@ fun Upload(navController: NavController, name: String?) {
                 content = {
                     Text(
                         text = stringResource(id = R.string.upload),
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier
                             .padding(vertical = 8.dp)
                     )
@@ -270,8 +269,9 @@ fun dropDownField(modifier: Modifier, label: String, options: List<String>): Str
                 focusedContainerColor = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
                 disabledContainerColor = Color.Transparent,
-                unfocusedIndicatorColor = LiteIconColor,
-                unfocusedLabelColor = LiteIconColor,
+                errorContainerColor = Color.Transparent,
+                unfocusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
             ),
 
             )
@@ -342,8 +342,8 @@ fun uploadScreen(
             focusedContainerColor = Color.Transparent,
             unfocusedContainerColor = Color.Transparent,
             disabledContainerColor = Color.Transparent,
-            unfocusedIndicatorColor = LiteIconColor,
-            unfocusedLabelColor = LiteIconColor,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
         ),
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text, imeAction = ImeAction.Next

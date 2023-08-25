@@ -3,7 +3,6 @@ package com.fourdevs.diuquestionbank.ui.authentication
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -17,11 +16,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.fourdevs.diuquestionbank.R
 import com.fourdevs.diuquestionbank.data.Resource
+import com.fourdevs.diuquestionbank.models.UserInfo
 import com.fourdevs.diuquestionbank.ui.navigation.LogIn
 import com.fourdevs.diuquestionbank.ui.navigation.SignUp
 import com.fourdevs.diuquestionbank.ui.navigation.Verification
@@ -53,46 +52,58 @@ fun SignUp(navController: NavHostController, viewModel: AuthViewModel) {
     var loading by remember { mutableStateOf(false) }
 
 
-    AuthBackground(stringResource(id = R.string.sign_up))  {
-        userName = nameTextField(localFocusManager = localFocusManager)
-        Spacer(modifier = Modifier.height(20.dp))
-        email = emailTextField(localFocusManager = localFocusManager)
-        Spacer(modifier = Modifier.height(20.dp))
-        password = textFieldPassword(
-            label = stringResource(id = R.string.password),
-            keyboardOptions =
-            KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Next
-            ),
+    AuthBackground(stringResource(id = R.string.sign_up)) {
+        AuthTextField(
+            label = Constants.DATA_NAME,
             keyboardActions = KeyboardActions(onNext = {
                 localFocusManager.moveFocus(FocusDirection.Down)
             })
-        )
+        ){
+            userName = it
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+        AuthTextField(
+            label = Constants.DATA_EMAIL,
+            keyboardActions = KeyboardActions(onNext = {
+                localFocusManager.moveFocus(FocusDirection.Down)
+            })
+        ){
+            email = it
+        }
         Spacer(modifier = Modifier.height(20.dp))
 
-        confirmPassword = textFieldPassword(
-            label = stringResource(id = R.string.confirm_password),
-            keyboardOptions =
-            KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions =
-            KeyboardActions(onNext = {
-                localFocusManager.clearFocus(true)
+        AuthTextField(
+            label = Constants.DATA_PASSWORD,
+            keyboardActions = KeyboardActions(onNext = {
+                localFocusManager.moveFocus(FocusDirection.Down)
             })
-        )
+        ){
+            password = it
+        }
+        Spacer(modifier = Modifier.height(20.dp))
+
+        AuthTextField(
+            label = Constants.DATA_CONFIRM_PASSWORD,
+            keyboardActions = KeyboardActions(onNext = {
+                localFocusManager.clearFocus(true)
+            }),
+            imeAction = ImeAction.Done
+        ){
+            confirmPassword = it
+        }
 
 
         Spacer(modifier = Modifier.height(30.dp))
 
 
         PrimaryColorButton(label = stringResource(id = R.string.sign_up)) {
-            if(viewModel.checkInternetConnection()) {
-                if(userName.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty() && isValidEmail(email)) {
-                    if(!checkDiuEmail(email)) {
-                        if(password.length>=6 && confirmPassword.length>=6 && password==confirmPassword) {
+            if (viewModel.checkInternetConnection()) {
+                if (userName.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty() && confirmPassword.isNotEmpty() && isValidEmail(
+                        email
+                    )
+                ) {
+                    if (!checkDiuEmail(email)) {
+                        if (password.length >= 6 && confirmPassword.length >= 6 && password == confirmPassword) {
                             viewModel.signupUser(userName, email, password)
                             loading = true
                             buttonClicked = !buttonClicked
@@ -118,7 +129,7 @@ fun SignUp(navController: NavHostController, viewModel: AuthViewModel) {
             goToLogIn = true
         }
 
-        if(buttonClicked) {
+        if (buttonClicked) {
             authResource.value?.let {
                 when (it) {
                     is Resource.Failure -> {
@@ -126,13 +137,17 @@ fun SignUp(navController: NavHostController, viewModel: AuthViewModel) {
                         buttonClicked = !buttonClicked
                         loading = false
                     }
+
                     is Resource.Loading -> {
                         loading = true
                     }
+
                     is Resource.Success -> {
+                        val currentUser = viewModel.currentUser?.uid!!
                         loading = !loading
                         buttonClicked = !buttonClicked
                         viewModel.sentVerificationEmail(userName, email, randomNumber.toString())
+                        viewModel.createUserInfo(UserInfo(currentUser, "", "", "", 0, 0, 0))
                         GetUserData(
                             user = viewModel.currentUser,
                             viewModel = viewModel,
@@ -144,7 +159,7 @@ fun SignUp(navController: NavHostController, viewModel: AuthViewModel) {
             }
         }
 
-        if(goToLogIn) {
+        if (goToLogIn) {
             LaunchedEffect(Unit) {
                 navController.navigate(LogIn.route) {
                     popUpTo(SignUp.route) { inclusive = true }
@@ -155,7 +170,7 @@ fun SignUp(navController: NavHostController, viewModel: AuthViewModel) {
 
     }
 
-    if(loading) {
+    if (loading) {
         ProgressBar()
     }
 
@@ -167,7 +182,7 @@ private fun GetUserData(
     user: FirebaseUser?,
     viewModel: AuthViewModel,
     navController: NavHostController,
-    otp : String
+    otp: String
 ) {
     user?.let {
         val name = it.displayName
@@ -191,7 +206,7 @@ private fun GoForVerification(navController: NavHostController) {
     }
 }
 
-fun checkDiuEmail(email: String):Boolean {
+fun checkDiuEmail(email: String): Boolean {
     val regex1 = Regex("[a-zA-Z0-9._-]+@diu.edu.bd")
     val regex2 = Regex("[a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+diu.edu.bd")
     return email.matches(regex1) || email.matches(regex2)

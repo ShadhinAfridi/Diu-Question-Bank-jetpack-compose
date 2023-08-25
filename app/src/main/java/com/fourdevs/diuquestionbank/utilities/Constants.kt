@@ -17,17 +17,25 @@ object Constants {
     const val KEY_USER_DEPARTMENT = "userDepartment"
     const val KEY_USER_ABOUT = "userAbout"
 
+    const val KEY_COUNT_UPLOAD = "uploadCount"
+    const val KEY_COUNT_APPROVED = "approvedCount"
+    const val KEY_COUNT_PENDING = "pendingCount"
+    const val KEY_COUNT_REJECTED = "rejectedCount"
 
     //user dao
     const val KEY_COLLECTION_USERS = "users"
 
     //DB
-    const val KEY_DB = "localDB"
+    const val KEY_DB = "diuQuestionBankDB"
 
 
     const val KEY_QUESTIONS = "Questions"
-    const val KEY_SOLUTIONS = "Solutions"
+    const val PERMISSION_REQUEST_CODE = 7
 
-    //Paging
-    const val API_STARTING_PAGE_INDEX = 1
+    const val DATA_NAME = "Name"
+    const val DATA_EMAIL = "Email"
+    const val DATA_PASSWORD = "Password"
+    const val DATA_CONFIRM_PASSWORD = "Confirm Password"
+
+
 }

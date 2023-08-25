@@ -23,6 +23,12 @@ interface ApiClient {
         page: Int
     ): List<Question>
 
+    suspend fun getQuestionsByUser(
+        userId: String,
+        token: String,
+        page: Int
+    ): List<Question>
+
     suspend fun getQuestionsByCourseName(
         department: String,
         token: String,
@@ -50,6 +56,8 @@ interface ApiClient {
         exam: String,
         token: String
     ) : Int
+
+
 
     suspend fun createUserInfo(
         userInfo: UserInfo

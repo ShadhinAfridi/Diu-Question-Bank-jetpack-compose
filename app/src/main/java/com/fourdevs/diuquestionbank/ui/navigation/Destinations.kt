@@ -19,6 +19,12 @@ object Questions: Destinations {
     override val title = "Questions"
 }
 
+object Resources: Destinations {
+    override val route = "Resources"
+    override val icon = R.drawable.ic_resources_icon
+    override val title = "Resources"
+}
+
 object Menu: Destinations {
     override val route = "Menu"
     override val icon = R.drawable.menu

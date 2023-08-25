@@ -1,6 +1,5 @@
 package com.fourdevs.diuquestionbank.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -11,7 +10,9 @@ import com.fourdevs.diuquestionbank.models.User
 import com.fourdevs.diuquestionbank.modules.OfflineQualifier
 import com.fourdevs.diuquestionbank.modules.OnlineQualifier
 import com.fourdevs.diuquestionbank.repository.AuthRepository
+import com.fourdevs.diuquestionbank.repository.CommonRepository
 import com.fourdevs.diuquestionbank.repository.QuestionRepository
+import com.fourdevs.diuquestionbank.utilities.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,7 @@ import javax.inject.Inject
 class QuestionViewModel @Inject constructor(
     @OnlineQualifier private val repositoryOnline: QuestionRepository,
     @OfflineQualifier private val repositoryOffline: QuestionRepository,
+    private val commonRepository: CommonRepository,
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
@@ -46,11 +48,14 @@ class QuestionViewModel @Inject constructor(
     private val _userResponseFlow = MutableStateFlow<Map<String, User>>(emptyMap())
     val userResponseFlow: StateFlow<Map<String, User>> = _userResponseFlow
 
+    val token = commonRepository.getSting(Constants.KEY_USER_TOKEN)
+
 
     fun createQuestion(newQuestion: Question) = viewModelScope.launch {
         _questionCreateFlow.value = Resource.Loading
-        val result = repositoryOnline.createQuestion(newQuestion)
-        _questionCreateFlow.value = result
+        token?.let {
+            _questionCreateFlow.value = repositoryOnline.createQuestion(newQuestion, it)
+        }
     }
 
 
@@ -62,18 +67,23 @@ class QuestionViewModel @Inject constructor(
 
     fun updateQuestion(id: String, isApproved: Int) =
         viewModelScope.launch {
-            repositoryOnline.updateQuestion(id, isApproved)
+            token?.let {
+                repositoryOnline.updateQuestion(id, isApproved, it)
+            }
         }
 
 
     fun getQuestionsByDepartment(department: String) = viewModelScope.launch {
         try {
-            questions =
-                repositoryOnline.getQuestionsByDepartment(department).cachedIn(viewModelScope)
-        } catch (e: Exception) {
-            Log.d("Afridi", e.message!!)
-        }
+            token?.let {
+                questions =
+                    repositoryOnline.getQuestionsByDepartment(department, it)
+                        .cachedIn(viewModelScope)
+            }
 
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun getQuestionsByCourse(
@@ -83,21 +93,32 @@ class QuestionViewModel @Inject constructor(
         exam: String
     ) = viewModelScope.launch {
         try {
-            questions =
-                repositoryOnline.getQuestionsByCourseName(department, courseName, shift, exam)
-                    .cachedIn(viewModelScope)
+            token?.let {
+                questions =
+                    repositoryOnline.getQuestionsByCourseName(
+                        department,
+                        courseName,
+                        shift,
+                        exam,
+                        it
+                    ).cachedIn(viewModelScope)
+            }
+
         } catch (e: Exception) {
-            Log.d("Afridi", e.message!!)
+            e.printStackTrace()
         }
     }
 
 
     fun getQuestionCountByDepartment(department: String) = viewModelScope.launch {
         try {
-            val updatedCounts = repositoryOnline.getQuestionCountByDepartment(department)
-            val updatedMap = _departmentCountFlow.value.toMutableMap()
-            updatedMap[department] = updatedCounts
-            _departmentCountFlow.value = updatedMap.toMap()
+            token?.let {
+                val updatedCounts = repositoryOnline.getQuestionCountByDepartment(department, it)
+                val updatedMap = _departmentCountFlow.value.toMutableMap()
+                updatedMap[department] = updatedCounts
+                _departmentCountFlow.value = updatedMap.toMap()
+            }
+
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -110,10 +131,14 @@ class QuestionViewModel @Inject constructor(
         exam: String
     ) = viewModelScope.launch {
         try {
-            val updatedCounts = repositoryOnline.getQuestionCountByName(department, courseName, shift, exam)
-            val updatedMap = _courseCountFlow.value.toMutableMap()
-            updatedMap[courseName] = updatedCounts
-            _courseCountFlow.value = updatedMap.toMap()
+            token?.let {
+                val updatedCounts =
+                    repositoryOnline.getQuestionCountByName(department, courseName, shift, exam, it)
+                val updatedMap = _courseCountFlow.value.toMutableMap()
+                updatedMap[courseName] = updatedCounts
+                _courseCountFlow.value = updatedMap.toMap()
+            }
+
         } catch (e: Exception) {
             e.printStackTrace()
         }

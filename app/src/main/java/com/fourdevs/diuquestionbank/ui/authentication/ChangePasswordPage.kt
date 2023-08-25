@@ -3,7 +3,6 @@ package com.fourdevs.diuquestionbank.ui.authentication
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -17,7 +16,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.fourdevs.diuquestionbank.R
@@ -49,30 +47,27 @@ private fun ChangePassword(navController: NavHostController, authViewModel: Auth
         val localFocusManager = LocalFocusManager.current
         val context = LocalContext.current
 
-        password = textFieldPassword(
-            label = "New "+stringResource(id = R.string.password),
-            keyboardOptions =
-            KeyboardOptions(
-                keyboardType = KeyboardType.Text,
-                imeAction = ImeAction.Next
-            ),
+        AuthTextField(
+            label = Constants.DATA_PASSWORD,
             keyboardActions = KeyboardActions(onNext = {
                 localFocusManager.moveFocus(FocusDirection.Down)
             })
-        )
+        ){
+            password = it
+        }
+
         Spacer(modifier = Modifier.height(20.dp))
-        confirmPassword = textFieldPassword(
-            label = stringResource(id = R.string.confirm_password),
-            keyboardOptions =
-            KeyboardOptions(
-                keyboardType = KeyboardType.Password,
-                imeAction = ImeAction.Done
-            ),
-            keyboardActions =
-            KeyboardActions(onNext = {
+
+        AuthTextField(
+            label = Constants.DATA_CONFIRM_PASSWORD,
+            keyboardActions = KeyboardActions(onNext = {
                 localFocusManager.clearFocus(true)
-            })
-        )
+            }),
+            imeAction = ImeAction.Done
+        ){
+            confirmPassword = it
+        }
+
         Spacer(modifier = Modifier.height(30.dp))
 
         PrimaryColorButton(label = "Change") {

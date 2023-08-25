@@ -24,9 +24,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.saveable.mapSaver
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -34,23 +34,26 @@ import androidx.navigation.NavHostController
 import com.fourdevs.diuquestionbank.R
 import com.fourdevs.diuquestionbank.data.DepartmentData
 import com.fourdevs.diuquestionbank.data.departments
+import com.fourdevs.diuquestionbank.ui.ads.AdmobBanner
 import com.fourdevs.diuquestionbank.ui.navigation.Department
 import com.fourdevs.diuquestionbank.ui.navigation.Upload
 import com.fourdevs.diuquestionbank.viewmodel.QuestionViewModel
+import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
+import com.google.android.gms.ads.AdSize
 
 
 @Composable
 fun QuestionsScreen(
-    navController: NavHostController, questionViewModel: QuestionViewModel
+    navController: NavHostController,
+    questionViewModel: QuestionViewModel,
+    userViewModel: UserViewModel
 ) {
 
     Scaffold(
         floatingActionButton = {
             IconButton(
                 onClick = {
-                    navController.navigate(
-                        Upload.route + "/question"
-                    )
+                    navController.navigate( Upload.route )
                 }, modifier = Modifier.background(
                     MaterialTheme.colorScheme.primary, shape = CircleShape
                 )
@@ -59,13 +62,13 @@ fun QuestionsScreen(
                     imageVector = Icons.Outlined.Add,
                     contentDescription = "Add Questions",
                     modifier = Modifier.padding(5.dp),
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         },
     ) {
         Box(modifier = Modifier.padding(it)) {
-            Department(navController, questionViewModel)
+            Department(navController, questionViewModel, userViewModel)
         }
     }
 }
@@ -74,13 +77,27 @@ fun QuestionsScreen(
 @SuppressLint("ResourceType")
 @Composable
 fun Department(
-    navController: NavHostController, questionViewModel: QuestionViewModel
+    navController: NavHostController,
+    questionViewModel: QuestionViewModel,
+    userViewModel: UserViewModel
 ) {
-    LazyColumn{
-        items(departments.size) {
-            DepartmentItem(departments[it], navController, questionViewModel)
-        }
+    LazyColumn {
+        items(departments.size) { index ->
+            DepartmentItem(departments[index], navController, questionViewModel)
 
+            // Check if the current index is divisible by 3 and not the last item
+            if ((index + 1) % 3 == 0 && index < departments.size - 1) {
+                ElevatedCard(
+                    modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.background
+                    )
+                ){
+                    // Content of the card you want to insert
+                    AdmobBanner(modifier = Modifier.fillMaxWidth(), adSize = AdSize.BANNER, userViewModel)
+                }
+            }
+        }
     }
 }
 
@@ -116,7 +133,7 @@ fun DepartmentItem(
         },
         modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = Color.White
+            containerColor = MaterialTheme.colorScheme.background
         )
     ) {
         Row(

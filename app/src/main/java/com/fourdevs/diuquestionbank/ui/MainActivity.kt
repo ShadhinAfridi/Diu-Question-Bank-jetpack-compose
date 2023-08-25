@@ -29,7 +29,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent() {
             if(authViewModel.getBoolean(Constants.KEY_IS_SIGNED_IN)) {
-                authViewModel.getIdToken(authViewModel.currentUser!!)
+                authViewModel.currentUser?.let {
+                    authViewModel.getIdToken(it)
+                }
             }
             DIUQuestionBankTheme {
                 // A surface container using the 'background' color from the theme

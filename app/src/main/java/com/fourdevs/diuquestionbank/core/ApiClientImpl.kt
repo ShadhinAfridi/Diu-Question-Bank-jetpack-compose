@@ -163,6 +163,29 @@ class ApiClientImpl @Inject constructor(
 
     }
 
+    override suspend fun getQuestionsByUser(
+        userId: String,
+        token: String,
+        page: Int
+    ): List<Question> {
+        return try {
+            val result = client.get("$baseUrl/questions/user/${userId}?page=${page}") {
+                headers {
+                    append(Authorization, "Bearer $token")
+                }
+            }.await<QuestionsResponse>()
+
+            if (result.success == 1) {
+                result.data
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            emptyList()
+        }
+    }
+
     override suspend fun getQuestionsByCourseName(
         department: String,
         token: String,
@@ -346,7 +369,7 @@ class ApiClientImpl @Inject constructor(
                     append(keyName, apiKey)
                 }
                 contentType(ContentType.Application.Json)
-                setBody(UserInfo(id, "", "", image))
+                setBody(UserInfo(id, "", "", image, 0, 0, 0))
             }.await<ApiResponse>()
 
             result.message

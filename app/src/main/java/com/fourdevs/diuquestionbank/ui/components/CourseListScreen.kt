@@ -1,6 +1,7 @@
 package com.fourdevs.diuquestionbank.ui.components
 
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,13 +25,16 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.fourdevs.diuquestionbank.data.Course
 import com.fourdevs.diuquestionbank.data.getCourseList
+import com.fourdevs.diuquestionbank.ui.ads.AdmobBanner
 import com.fourdevs.diuquestionbank.ui.navigation.QuestionList
 import com.fourdevs.diuquestionbank.viewmodel.QuestionViewModel
+import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
+import com.google.android.gms.ads.AdSize
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
@@ -39,8 +43,17 @@ fun CourseListScreen(
     shift: String?,
     exam: String?,
     navController: NavHostController,
-    questionViewModel: QuestionViewModel
+    questionViewModel: QuestionViewModel,
+    userViewModel: UserViewModel
 ) {
+    var courseList = emptyList<Course>()
+
+    departmentName?.let {
+        courseList = getCourseList(it)
+    }
+
+    var count = 0
+
 
 
     Scaffold(
@@ -50,16 +63,31 @@ fun CourseListScreen(
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {
             LazyColumn {
-                items(getCourseList(departmentName!!)) {
 
+                items(courseList) {
+                    count++
                     CourseListItem(
                         name = it.name,
-                        department = departmentName,
+                        department = departmentName!!,
                         shift = shift!!,
                         exam = exam!!,
                         navController,
                         questionViewModel
                     )
+
+                    if ((count + 1) % 3 == 0 && count < courseList.size - 1) {
+                        ElevatedCard(
+                            modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp),
+                            colors = CardDefaults.elevatedCardColors(
+                                containerColor = MaterialTheme.colorScheme.background
+                            )
+                        ){
+                            // Content of the card you want to insert
+                            Log.d("Afridi", "$count")
+                            AdmobBanner(modifier = Modifier.fillMaxWidth(), adSize = AdSize.BANNER, userViewModel)
+                        }
+                    }
+
                 }
             }
         }
@@ -110,7 +138,7 @@ fun CourseListItem(
         modifier = Modifier
             .padding(vertical = 5.dp, horizontal = 10.dp)
             .fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.background)
     ) {
 
         Row(
@@ -140,7 +168,7 @@ fun CourseListItem(
                             endIndex = 3
                         ) else firstLetters,
                         style = MaterialTheme.typography.titleSmall,
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.background,
                         textAlign = TextAlign.Center,
                         maxLines = 1
                     )

@@ -1,7 +1,6 @@
 package com.fourdevs.diuquestionbank.ui.components
 
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -32,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
@@ -63,7 +61,7 @@ fun AppTopAppBar(name: String) {
         colors = TopAppBarDefaults
             .mediumTopAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = Color.White
+                titleContentColor = MaterialTheme.colorScheme.onPrimary
             )
     )
 }
@@ -88,14 +86,14 @@ fun TopAppBarWithBackIcon(
                 Icon(
                     imageVector = Icons.Filled.ArrowBack,
                     contentDescription = "Back Icon",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         },
         colors = TopAppBarDefaults
             .mediumTopAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = Color.White
+                titleContentColor = MaterialTheme.colorScheme.onPrimary
             )
 
     )
@@ -118,14 +116,14 @@ fun MenuAppBar() {
         colors = TopAppBarDefaults
             .mediumTopAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = Color.White
+                titleContentColor = MaterialTheme.colorScheme.onPrimary
             ),
         actions = {
             IconButton(onClick = { /* doSomething() */ }) {
                 Icon(
                     imageVector = Icons.Filled.Settings,
                     contentDescription = "Localized description",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
@@ -152,7 +150,7 @@ fun AccountTopAppBar(
                 .fillMaxWidth()
                 .padding(5.dp)
         ) {
-            Text(text = "Edit your profile", color = Color.White)
+            Text(text = "Edit your profile", color = MaterialTheme.colorScheme.onPrimary)
         }
     }
 }
@@ -171,19 +169,19 @@ fun HomeAppBar(viewModel: AuthViewModel) {
                 Text(
                     text = viewModel.getString(Constants.KEY_NAME)!!,
                     style = MaterialTheme.typography.titleSmall,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
                 Text(
                     text = viewModel.getString(Constants.KEY_EMAIL)!!,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
         },
         colors = TopAppBarDefaults
             .mediumTopAppBarColors(
                 containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = Color.White
+                titleContentColor = MaterialTheme.colorScheme.onPrimary
             ),
         navigationIcon = {
             IconButton(
@@ -200,7 +198,7 @@ fun HomeAppBar(viewModel: AuthViewModel) {
                         .size(48.dp)
                         .padding(5.dp)
                         .clip(CircleShape)
-                        .border(width = 2.dp, Color.White, shape = CircleShape)
+                        .border(width = 2.dp, MaterialTheme.colorScheme.onPrimary, shape = CircleShape)
                         .clipToBounds(),
                     contentScale = ContentScale.Crop
                 )
@@ -211,7 +209,7 @@ fun HomeAppBar(viewModel: AuthViewModel) {
                 Icon(
                     imageVector = Icons.Outlined.Notifications,
                     contentDescription = "Notifications",
-                    tint = Color.White
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }

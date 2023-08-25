@@ -1188,9 +1188,10 @@ val pessCourseList = mutableListOf(
     Course("1014-423", "Advanced Sports Coaching", "L4T2")
 )
 
-//val bbaCourseList = mutableListOf(
-//
-//)
+val bbaCourseList = mutableListOf(
+    Course("AOL-301", "Art of Living", "L3T1")
+)
+
 val bsCourseList = mutableListOf(
     Course("BUS-101", "Business Fundamentals and Ethics", "L1T1"),
     Course("MIS-101", "ICT in Business with Lab", "L1T1"),

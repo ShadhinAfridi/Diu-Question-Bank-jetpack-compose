@@ -18,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,7 +51,7 @@ fun VerificationScreen(navController: NavHostController, authViewModel: AuthView
 fun VerificationPage(navController: NavHostController, authViewModel: AuthViewModel) {
     val digitCount = 6
     var verificationCode by remember { mutableStateOf("      ") }
-    var timerSeconds by rememberSaveable { mutableStateOf(120) }
+    var timerSeconds by rememberSaveable { mutableIntStateOf(120) }
     var isTimerRunning by remember { mutableStateOf(true) }
     val localFocusManager = LocalFocusManager.current
     val coroutineScope = rememberCoroutineScope()

@@ -13,31 +13,28 @@ import javax.inject.Inject
 class QuestionRepositoryOffline @Inject constructor(
     private val questionDao: QuestionDao
 ) : QuestionRepository {
-    override suspend fun createQuestion(newQuestion: Question): Resource<Unit> {
-        return try{
-            val result = questionDao.insertQuestion(newQuestion)
-            Resource.Success(result)
-        } catch (e:Exception) {
-            e.printStackTrace()
-            Resource.Failure(e)
-        }
-
+    override suspend fun createQuestion(newQuestion: Question, token: String): Resource<Unit> {
+        TODO("Not yet implemented")
     }
-
 
     override suspend fun downloadFile(fileName: String): Resource<Double> {
         TODO("Not yet implemented")
     }
 
-    override suspend fun updateQuestion(
-        id: String,
-        isApproved: Int
-    ) {
+    override suspend fun updateQuestion(id: String, isApproved: Int, token: String) {
         TODO("Not yet implemented")
     }
 
     override suspend fun getQuestionsByDepartment(
-        department: String
+        department: String,
+        token: String
+    ): Flow<PagingData<Question>> {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun getQuestionsByUser(
+        userId: String,
+        token: String
     ): Flow<PagingData<Question>> {
         TODO("Not yet implemented")
     }
@@ -46,7 +43,8 @@ class QuestionRepositoryOffline @Inject constructor(
         department: String,
         courseName: String,
         shift: String,
-        exam: String
+        exam: String,
+        token: String
     ): Flow<PagingData<Question>> {
         TODO("Not yet implemented")
     }
@@ -55,12 +53,13 @@ class QuestionRepositoryOffline @Inject constructor(
         department: String,
         courseName: String,
         shift: String,
-        exam: String
+        exam: String,
+        token: String
     ): Int {
         TODO("Not yet implemented")
     }
 
-    override suspend fun getQuestionCountByDepartment(department: String): Int {
+    override suspend fun getQuestionCountByDepartment(department: String, token: String): Int {
         TODO("Not yet implemented")
     }
 

@@ -7,8 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.fourdevs.diuquestionbank.data.Resource
 import com.fourdevs.diuquestionbank.models.UserInfo
 import com.fourdevs.diuquestionbank.repository.AuthRepository
-import com.fourdevs.diuquestionbank.repository.CommonRepository
-import com.fourdevs.diuquestionbank.repository.UserRepository
 import com.fourdevs.diuquestionbank.utilities.Constants
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,9 +19,7 @@ import kotlin.random.Random
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val repository: AuthRepository,
-    private val repositoryCommon: CommonRepository,
-    private val userRepository: UserRepository
+    private val repository: AuthRepository
 ) : ViewModel() {
 
     private val _loginFlow = MutableStateFlow<Resource<FirebaseUser>?>(null)
@@ -40,6 +36,7 @@ class AuthViewModel @Inject constructor(
 
     private val _userInfoFlow = MutableStateFlow<UserInfo?>(null)
     val userInfoFlow = _userInfoFlow.asStateFlow()
+
 
 
     val currentUser: FirebaseUser?
@@ -65,7 +62,7 @@ class AuthViewModel @Inject constructor(
 
     fun logout() {
         repository.logout()
-        repositoryCommon.clearPreferences()
+        repository.clearPreferences()
         _loginFlow.value = null
         _signupFlow.value = null
     }
@@ -73,7 +70,13 @@ class AuthViewModel @Inject constructor(
     fun getUserInfo(
         id:String
     ) = viewModelScope.launch {
-        _userInfoFlow.value = userRepository.getUserInfo(id)
+        _userInfoFlow.value = repository.getUserInfo(id)
+    }
+
+    fun createUserInfo(
+        userInfo: UserInfo
+    ) = viewModelScope.launch {
+        repository.createUserInfo(userInfo)
     }
 
     fun getIdToken(user: FirebaseUser) = viewModelScope.launch{
@@ -118,19 +121,19 @@ class AuthViewModel @Inject constructor(
     fun checkInternetConnection() :Boolean = repository.checkInternetConnection()
 
     fun putString(key:String, value:String) {
-        repositoryCommon.putString(key, value)
+        repository.putString(key, value)
     }
 
     fun putBoolean(key:String, value:Boolean) {
-        repositoryCommon.putBoolean(key, value)
+        repository.putBoolean(key, value)
     }
 
-    fun getString(key: String) : String? = repositoryCommon.getSting(key)
+    fun getString(key: String) : String? = repository.getString(key)
 
-    fun getBoolean(key: String) : Boolean = repositoryCommon.getBoolean(key)
+    fun getBoolean(key: String) : Boolean = repository.getBoolean(key)
 
     fun bitmapFromEncodedString(encodedImage: String): Bitmap {
-        return userRepository.bitmapFromEncodedString(encodedImage)
+        return repository.bitmapFromEncodedString(encodedImage)
     }
 
 

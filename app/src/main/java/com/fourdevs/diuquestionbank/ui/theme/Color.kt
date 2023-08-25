@@ -3,11 +3,12 @@ package com.fourdevs.diuquestionbank.ui.theme
 import androidx.compose.ui.graphics.Color
 
 
-val CircleColor = Color(0x14FFFFFF)
-val LiteIconColor = Color(0xFF9B9B9B)
 
 //Primary
-val md_theme_light_primary = Color(0xFF2E3094)
+val light_primary = Color(0xFF167d7f)
+val light_onPrimary = Color(0xFFE9ECEA)
 
 //Dark Primary
-val md_theme_dark_primary = Color(0xFF0D0F74)
+val dark_primary = Color(0xFF29a0b1)
+val dark_onPrimary = Color(0xFFF1FCFD)
+

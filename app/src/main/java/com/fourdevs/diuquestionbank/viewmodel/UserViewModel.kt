@@ -1,15 +1,18 @@
 package com.fourdevs.diuquestionbank.viewmodel
 
+import android.app.Activity
+import android.content.Context
 import android.graphics.Bitmap
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
+import com.fourdevs.diuquestionbank.data.Question
 import com.fourdevs.diuquestionbank.models.UserInfo
-import com.fourdevs.diuquestionbank.repository.CommonRepository
 import com.fourdevs.diuquestionbank.repository.UserRepository
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
+import com.fourdevs.diuquestionbank.utilities.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -17,19 +20,24 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
-    private val userRepository: UserRepository,
-    private val repositoryCommon: CommonRepository
+    private val userRepository: UserRepository
 ) : ViewModel(){
 
     private val _apiResponseFlow = MutableStateFlow<String?>(null)
     val apiResponseFlow = _apiResponseFlow.asStateFlow()
 
-    fun createUserInfo(
-        userInfo: UserInfo
-    ) = viewModelScope.launch {
-        _apiResponseFlow.value = userRepository.createUserInfo(userInfo)
-    }
+    private val _userInfoFlow = MutableStateFlow<UserInfo?>(null)
+    val userInfoFlow = _userInfoFlow.asStateFlow()
 
+    var questions: Flow<PagingData<Question>>? = null
+
+    val token = userRepository.getString(Constants.KEY_USER_TOKEN)
+
+    fun getUserInfo(
+        id:String
+    ) = viewModelScope.launch {
+        _userInfoFlow.value = userRepository.getUserInfo(id)
+    }
     fun updateUserInfo(
         id:String,
         department: String,
@@ -46,16 +54,16 @@ class UserViewModel @Inject constructor(
     }
 
     fun putString(key:String, value:String) {
-        repositoryCommon.putString(key, value)
+        userRepository.putString(key, value)
     }
 
     fun putBoolean(key:String, value:Boolean) {
-        repositoryCommon.putBoolean(key, value)
+        userRepository.putBoolean(key, value)
     }
 
-    fun getString(key: String) : String? = repositoryCommon.getSting(key)
+    fun getString(key: String) : String? = userRepository.getString(key)
 
-    fun getBoolean(key: String) : Boolean = repositoryCommon.getBoolean(key)
+    fun getBoolean(key: String) : Boolean = userRepository.getBoolean(key)
 
     fun bitmapFromEncodedString(encodedImage: String): Bitmap {
         return userRepository.bitmapFromEncodedString(encodedImage)
@@ -64,5 +72,32 @@ class UserViewModel @Inject constructor(
     fun bitmapToBase64(bitmap: Bitmap): String {
         return userRepository.bitmapToBase64(bitmap)
     }
+
+    fun getQuestionsByUser(userId: String) = viewModelScope.launch {
+        try {
+            token?.let {
+                questions =
+                    userRepository.getQuestionsByUser(userId, it).cachedIn(viewModelScope)
+            }
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun showInterstitialAd(activity: Activity) {
+        userRepository.showInterstitialAd(activity)
+    }
+
+    fun fetchBannerAdId(callback: (String?) -> Unit) {
+        userRepository.fetchBannerAdId(callback)
+    }
+
+    fun checkPermissions() = userRepository.checkPermissions()
+    fun askPermission(activity: Activity) {
+        userRepository.askPermission(activity)
+    }
+
+
 
 }

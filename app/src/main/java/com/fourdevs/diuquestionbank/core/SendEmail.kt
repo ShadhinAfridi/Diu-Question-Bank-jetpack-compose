@@ -15,7 +15,7 @@ import javax.mail.internet.MimeMessage
 
 class SendEmail @Inject constructor() {
     private val email = "reply.diuquestionbank@gmail.com"
-    private val password = "sjgmwdoagstyaxxa"
+    private val password = "mzssrgthlscxkfco"
     private val props = Properties().apply {
         this["mail.smtp.host"] = "smtp.gmail.com"
         this["mail.smtp.socketFactory.port"] = "465"

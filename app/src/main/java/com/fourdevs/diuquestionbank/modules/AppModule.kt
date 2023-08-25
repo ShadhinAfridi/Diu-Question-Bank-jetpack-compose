@@ -67,6 +67,7 @@ object AppModule {
     @Provides
     fun providesQuestionDao(db: AppDatabase): QuestionDao = db.questionDao()
 
+
     @Provides
     fun providesApiClient(impl: ApiClientImpl): ApiClient = impl
 

@@ -1,5 +1,10 @@
 package com.fourdevs.diuquestionbank.ui.components
 
+import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,11 +25,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.fourdevs.diuquestionbank.R
+import com.fourdevs.diuquestionbank.ui.navigation.AboutUs
 import com.fourdevs.diuquestionbank.ui.navigation.AuthNav
+import com.fourdevs.diuquestionbank.ui.navigation.ContactUs
+import com.fourdevs.diuquestionbank.ui.navigation.Help
 import com.fourdevs.diuquestionbank.ui.navigation.Menu
 import com.fourdevs.diuquestionbank.viewmodel.AuthViewModel
 
@@ -36,11 +45,32 @@ fun MenuScreen(
     MenuItem(navController, authViewModel)
 }
 
+@SuppressLint("QueryPermissionsNeeded")
 @Composable
 fun MenuItem(
     navController: NavHostController,
     authViewModel: AuthViewModel
 ) {
+
+    val context = LocalContext.current
+    val packageName = "com.fourdevs.diuquestionbank"
+    val link = "https://techerax.com/"
+    val joinUs = "https://forms.gle/thaSvMkraDACDd9c6"
+
+    val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+    val joinUsIntent = Intent(Intent.ACTION_VIEW, Uri.parse(joinUs))
+
+    val playStoreIntent = Intent(Intent.ACTION_VIEW).apply {
+        data = Uri.parse("market://details?id=$packageName")
+        setPackage("com.android.vending") // Use the Play Store's package name
+    }
+
+    val startForResult = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { _ -> /* Handle result if needed */ }
+
+
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -49,22 +79,22 @@ fun MenuItem(
         MenuTitleItem(title = "FourDevs")
         Column(modifier = Modifier.fillMaxWidth()) {
             MenuRowItem(imageId = R.drawable.info, title = "About Us") {
-
+                navController.navigate(AboutUs.route)
             }
             MenuRowItem(imageId = R.drawable.call, title = "Contact Us") {
-
+                navController.navigate(ContactUs.route)
             }
             MenuRowItem(imageId = R.drawable.help, title = "Help") {
-
+                navController.navigate(Help.route)
             }
             MenuRowItem(imageId = R.drawable.group, title = "Join Us") {
-
+                startForResult.launch(joinUsIntent)
             }
             MenuRowItem(imageId = R.drawable.star, title = "Rate This App") {
-
+                startForResult.launch(playStoreIntent)
             }
             MenuRowItem(imageId = R.drawable.shield, title = "Privacy Policy") {
-
+                startForResult.launch(browserIntent)
             }
             MenuRowItem(imageId = R.drawable.logout, title = "Log Out") {
                 authViewModel.logout()
@@ -92,7 +122,7 @@ fun MenuTitleItem(title: String) {
                 .fillMaxWidth()
                 .height(1.dp)
                 .padding(horizontal = 5.dp)
-                .background(color = Color.Gray)
+                .background(color = MaterialTheme.colorScheme.outline)
         )
     }
 }
@@ -104,7 +134,7 @@ fun MenuRowItem(imageId: Int, title: String, onClick: () -> Unit) {
         onClick = onClick,
         modifier = Modifier
             .padding(5.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = Color.White)
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.background)
     ) {
 
         Row(
