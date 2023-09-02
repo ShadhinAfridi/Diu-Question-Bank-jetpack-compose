@@ -30,22 +30,18 @@ interface QuestionDao {
     fun getQuestionById(questionId: String): LiveData<Question?>
 
     @Query("SELECT * FROM questions WHERE uploaderId = :id")
-    fun getQuestionByUser(id: String): LiveData<Question?>
+    fun getQuestionByUser(id: String): List<Question>
 
     @Query("SELECT * FROM questions WHERE departmentName = :departmentName")
     fun getQuestionsByDepartment(departmentName: String): List<Question>
 
-    @Query("SELECT * FROM questions WHERE departmentName = :departmentName AND shift = :shift AND exam = :exam AND courseName = :courseName LIMIT :offset, :limit")
+    @Query("SELECT * FROM questions WHERE departmentName = :departmentName AND shift = :shift AND exam = :exam AND courseName = :courseName")
     fun getQuestionsByCourse(
         departmentName: String,
         shift: String,
         exam: String,
         courseName: String,
-        offset: Int,
-        limit: Int
     ): List<Question>
 
-    @Query("UPDATE questions SET courseName = :courseName WHERE questionId = :questionId")
-    fun updateQuestionCourseName(courseName: String, questionId: Int)
 
 }

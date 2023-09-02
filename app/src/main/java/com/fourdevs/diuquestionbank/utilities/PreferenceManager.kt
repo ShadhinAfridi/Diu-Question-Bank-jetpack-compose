@@ -33,4 +33,5 @@ class PreferenceManager @Inject constructor(
     fun clear() {
         editor.clear().commit()
     }
+
 }

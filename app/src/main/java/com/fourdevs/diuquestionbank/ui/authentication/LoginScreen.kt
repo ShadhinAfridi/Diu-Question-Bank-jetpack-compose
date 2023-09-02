@@ -187,6 +187,7 @@ private fun LogIn(
                                     viewModel.putString(Constants.KEY_EMAIL, email)
                                     viewModel.putBoolean(Constants.KEY_IS_VERIFIED, true)
                                     viewModel.putString(Constants.KEY_USER_ID, uid)
+                                    viewModel.putBoolean(Constants.KEY_SYSTEM_MODE, true)
                                     CompleteLogIn(navController)
                                     viewModel.getIdToken(user)
                                 } else {

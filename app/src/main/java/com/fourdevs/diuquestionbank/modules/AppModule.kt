@@ -6,7 +6,6 @@ import com.fourdevs.diuquestionbank.core.ApiClientImpl
 import com.fourdevs.diuquestionbank.firebase.FirebaseCloudStorage
 import com.fourdevs.diuquestionbank.firebase.FirebaseCloudStorageImpl
 import com.fourdevs.diuquestionbank.repository.QuestionRepository
-import com.fourdevs.diuquestionbank.repository.QuestionRepositoryOffline
 import com.fourdevs.diuquestionbank.repository.QuestionRepositoryOnline
 import com.fourdevs.diuquestionbank.room.AppDatabase
 import com.fourdevs.diuquestionbank.room.dao.QuestionDao
@@ -39,14 +38,8 @@ object AppModule {
     fun providesStorageReference(storage: FirebaseStorage): StorageReference = storage.reference
 
     @Provides
-    @OnlineQualifier
     fun providesQuestionRepositoryOnline(online: QuestionRepositoryOnline): QuestionRepository =
         online
-
-    @Provides
-    @OfflineQualifier
-    fun providesQuestionRepositoryOffline(offline: QuestionRepositoryOffline): QuestionRepository =
-        offline
 
     @Provides
     fun providesApiHttpClient(): HttpClient {

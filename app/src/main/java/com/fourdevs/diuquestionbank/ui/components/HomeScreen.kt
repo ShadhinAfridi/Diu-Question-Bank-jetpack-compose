@@ -3,7 +3,6 @@ package com.fourdevs.diuquestionbank.ui.components
 import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,6 +57,7 @@ import com.fourdevs.diuquestionbank.ui.navigation.Department
 import com.fourdevs.diuquestionbank.ui.navigation.EditProfileScreen
 import com.fourdevs.diuquestionbank.ui.navigation.Upload
 import com.fourdevs.diuquestionbank.utilities.Constants
+import com.fourdevs.diuquestionbank.viewmodel.NotificationViewModel
 import com.fourdevs.diuquestionbank.viewmodel.QuestionViewModel
 import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
 import com.google.android.gms.ads.AdSize
@@ -65,16 +66,40 @@ import com.google.android.gms.ads.AdSize
 fun HomeScreen(
     navController: NavHostController,
     questionViewModel: QuestionViewModel,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    notificationViewModel: NotificationViewModel
 ) {
+    val activity = LocalContext.current as Activity
     val scrollState = rememberLazyListState()
+    var notificationAllowed by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var didOnce by rememberSaveable {
+        mutableStateOf(false)
+    }
 
-    Home(
-        navController = navController,
-        userViewModel = userViewModel,
-        questionViewModel = questionViewModel,
-        scrollState = scrollState
-    )
+    if(!didOnce) {
+        notificationAllowed = notificationViewModel.checkNotificationPermission()
+        didOnce = true
+    }
+
+    if(!notificationAllowed) {
+        notificationViewModel.askNotificationPermission(activity)
+    }
+
+    Scaffold{
+        Box(modifier = Modifier.padding(it)){
+            userViewModel.getString(Constants.KEY_USER_ID)?.let {userId->
+                userViewModel.getQuestionsByUser(userId)
+            }
+            Home(
+                navController = navController,
+                userViewModel = userViewModel,
+                questionViewModel = questionViewModel,
+                scrollState = scrollState
+            )
+        }
+    }
 }
 
 @Composable
@@ -240,6 +265,7 @@ fun SearchBarDesign() {
         Modifier
             .fillMaxWidth()
             .wrapContentSize()
+            .padding(bottom = 5.dp)
             .semantics { }
     ) {
         SearchBar(
@@ -298,10 +324,7 @@ fun YourUploadCard(
     userViewModel: UserViewModel,
     scrollState: LazyListState
 ) {
-
     val questions = userViewModel.questions?.collectAsLazyPagingItems()
-
-    userViewModel.getQuestionsByUser(userViewModel.getString(Constants.KEY_USER_ID)!!)
 
     HomeCard {
         Text(
@@ -321,6 +344,7 @@ fun YourUploadCard(
                         questionViewModel = questionViewModel
                     )
                 }
+
             }
         }
     }

@@ -49,6 +49,7 @@ import com.fourdevs.diuquestionbank.ui.navigation.authNavGraph
 import com.fourdevs.diuquestionbank.ui.navigation.bottomNavGraph
 import com.fourdevs.diuquestionbank.utilities.Constants
 import com.fourdevs.diuquestionbank.viewmodel.AuthViewModel
+import com.fourdevs.diuquestionbank.viewmodel.NotificationViewModel
 import com.fourdevs.diuquestionbank.viewmodel.QuestionViewModel
 import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
 
@@ -58,7 +59,8 @@ fun App(
     navController: NavHostController,
     authViewModel: AuthViewModel,
     questionViewModel: QuestionViewModel,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    notificationViewModel: NotificationViewModel
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -72,6 +74,9 @@ fun App(
         200
     } + fadeOut()
 
+
+
+
     Scaffold(
         topBar = {
             AnimatedVisibility(
@@ -83,11 +88,10 @@ fun App(
                     Questions.route -> AppTopAppBar(name = "Questions")
                     Home.route -> HomeAppBar(authViewModel)
                     Account.route -> AccountTopAppBar(navController, authViewModel)
-                    Menu.route -> MenuAppBar()
+                    Menu.route -> AppTopAppBar(name = "Menu")
                     Resources.route -> AppTopAppBar(name = "Resources")
                 }
             }
-
         },
 
         bottomBar = {
@@ -113,12 +117,15 @@ fun App(
             ) {
                 authNavGraph(navController, authViewModel)
                 bottomNavGraph(
-                    navController, authViewModel, questionViewModel, userViewModel
+                    navController,
+                    authViewModel,
+                    questionViewModel,
+                    userViewModel,
+                    notificationViewModel
                 )
             }
         }
     }
-
 
 
 }
@@ -186,7 +193,7 @@ fun AnimatedNavigationBar(
                         selectedIconColor = MaterialTheme.colorScheme.onPrimary,
                         indicatorColor = MaterialTheme.colorScheme.primary,
                         selectedTextColor = MaterialTheme.colorScheme.primary,
-                        unselectedIconColor =  MaterialTheme.colorScheme.onBackground,
+                        unselectedIconColor = MaterialTheme.colorScheme.onBackground,
                     )
                 )
             }
@@ -194,3 +201,6 @@ fun AnimatedNavigationBar(
     }
 
 }
+
+
+

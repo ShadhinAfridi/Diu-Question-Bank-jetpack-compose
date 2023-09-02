@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -36,7 +35,6 @@ import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
@@ -99,36 +97,6 @@ fun TopAppBarWithBackIcon(
     )
 }
 
-
-@Preview
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun MenuAppBar() {
-    TopAppBar(
-        title = {
-            Text(
-                text = "Menu",
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium
-            )
-        },
-        colors = TopAppBarDefaults
-            .mediumTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                titleContentColor = MaterialTheme.colorScheme.onPrimary
-            ),
-        actions = {
-            IconButton(onClick = { /* doSomething() */ }) {
-                Icon(
-                    imageVector = Icons.Filled.Settings,
-                    contentDescription = "Localized description",
-                    tint = MaterialTheme.colorScheme.onPrimary
-                )
-            }
-        }
-    )
-}
 
 @Composable
 fun AccountTopAppBar(
@@ -198,7 +166,11 @@ fun HomeAppBar(viewModel: AuthViewModel) {
                         .size(48.dp)
                         .padding(5.dp)
                         .clip(CircleShape)
-                        .border(width = 2.dp, MaterialTheme.colorScheme.onPrimary, shape = CircleShape)
+                        .border(
+                            width = 2.dp,
+                            MaterialTheme.colorScheme.onPrimary,
+                            shape = CircleShape
+                        )
                         .clipToBounds(),
                     contentScale = ContentScale.Crop
                 )

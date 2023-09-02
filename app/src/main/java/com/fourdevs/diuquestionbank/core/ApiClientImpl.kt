@@ -116,7 +116,7 @@ class ApiClientImpl @Inject constructor(
     }
 
 
-    override suspend fun createQuestion(newQuestion: Question, token: String): Resource<Unit> {
+    override suspend fun createQuestion(newQuestion: Question, token: String, callback: (Boolean) -> Unit){
         return try {
             val result = client.post("$baseUrl/questions/") {
                 headers {
@@ -127,13 +127,13 @@ class ApiClientImpl @Inject constructor(
             }.await<ApiResponse>()
 
             if (result.success == 1) {
-                Resource.Success(Unit)
+                callback(true)
             } else {
-                Resource.Failure(Exception(result.message))
+                callback(false)
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            Resource.Failure(e)
+            callback(false)
         }
     }
 

@@ -1,7 +1,6 @@
 package com.fourdevs.diuquestionbank.viewmodel
 
 import android.app.Activity
-import android.content.Context
 import android.graphics.Bitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -32,6 +31,14 @@ class UserViewModel @Inject constructor(
     var questions: Flow<PagingData<Question>>? = null
 
     val token = userRepository.getString(Constants.KEY_USER_TOKEN)
+
+    private val _systemThemeFlow = MutableStateFlow(userRepository.getBoolean(Constants.KEY_SYSTEM_MODE))
+    val systemThemeFlow = _systemThemeFlow.asStateFlow()
+
+    fun updateTheme(systemTheme:Boolean) {
+        _systemThemeFlow.value = systemTheme
+        userRepository.putBoolean(Constants.KEY_SYSTEM_MODE, systemTheme)
+    }
 
     fun getUserInfo(
         id:String

@@ -1,6 +1,7 @@
 package com.fourdevs.diuquestionbank.ui.components
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,7 +25,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.saveable.mapSaver
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -81,6 +85,7 @@ fun Department(
     questionViewModel: QuestionViewModel,
     userViewModel: UserViewModel
 ) {
+    
     LazyColumn {
         items(departments.size) { index ->
             DepartmentItem(departments[index], navController, questionViewModel)
@@ -88,7 +93,9 @@ fun Department(
             // Check if the current index is divisible by 3 and not the last item
             if ((index + 1) % 3 == 0 && index < departments.size - 1) {
                 ElevatedCard(
-                    modifier = Modifier.padding(vertical = 5.dp, horizontal = 10.dp),
+                    modifier = Modifier
+                        .padding(vertical = 5.dp, horizontal = 10.dp)
+                        .animateContentSize(),
                     colors = CardDefaults.elevatedCardColors(
                         containerColor = MaterialTheme.colorScheme.background
                     )
@@ -117,7 +124,11 @@ fun DepartmentItem(
 
     val countForDepartment: Int? = currentDepartmentCounts[department.name]
 
-    val countText = countForDepartment?.let { count ->
+    var countText by rememberSaveable {
+        mutableStateOf("")
+    }
+
+    countText = countForDepartment?.let { count ->
         if (count > 1) {
             "$count Questions"
         } else {

@@ -21,6 +21,7 @@ import com.fourdevs.diuquestionbank.ui.components.QuestionsScreen
 import com.fourdevs.diuquestionbank.ui.components.ResourceScreen
 import com.fourdevs.diuquestionbank.ui.components.UploadScreen
 import com.fourdevs.diuquestionbank.viewmodel.AuthViewModel
+import com.fourdevs.diuquestionbank.viewmodel.NotificationViewModel
 import com.fourdevs.diuquestionbank.viewmodel.QuestionViewModel
 import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
 
@@ -29,11 +30,12 @@ fun NavGraphBuilder.bottomNavGraph(
     navController: NavHostController,
     authViewModel: AuthViewModel,
     questionViewModel: QuestionViewModel,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    notificationViewModel: NotificationViewModel
 ) {
     navigation(startDestination = Home.route, route = BottomNav.route) {
         composable(Home.route) {
-            HomeScreen(navController, questionViewModel, userViewModel)
+            HomeScreen(navController, questionViewModel, userViewModel, notificationViewModel)
         }
         composable(Questions.route) {
             QuestionsScreen(navController, questionViewModel, userViewModel)
@@ -42,13 +44,13 @@ fun NavGraphBuilder.bottomNavGraph(
             AccountScreen(navController, userViewModel, questionViewModel)
         }
         composable(Menu.route) {
-            MenuScreen(navController, authViewModel)
+            MenuScreen(navController, authViewModel, userViewModel)
         }
         composable(Resources.route) {
             ResourceScreen(navController, userViewModel)
         }
         composable(Upload.route) {
-            UploadScreen(navController)
+            UploadScreen(navController, questionViewModel, notificationViewModel)
         }
         composable(Department.route + "/{department}") {
             val departmentName = it.arguments?.getString("department")

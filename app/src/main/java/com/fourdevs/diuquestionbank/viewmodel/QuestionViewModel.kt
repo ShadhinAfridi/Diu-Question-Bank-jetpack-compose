@@ -1,5 +1,6 @@
 package com.fourdevs.diuquestionbank.viewmodel
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
@@ -7,16 +8,12 @@ import androidx.paging.cachedIn
 import com.fourdevs.diuquestionbank.data.Question
 import com.fourdevs.diuquestionbank.data.Resource
 import com.fourdevs.diuquestionbank.models.User
-import com.fourdevs.diuquestionbank.modules.OfflineQualifier
-import com.fourdevs.diuquestionbank.modules.OnlineQualifier
 import com.fourdevs.diuquestionbank.repository.AuthRepository
-import com.fourdevs.diuquestionbank.repository.CommonRepository
 import com.fourdevs.diuquestionbank.repository.QuestionRepository
-import com.fourdevs.diuquestionbank.utilities.Constants
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -24,15 +21,9 @@ import javax.inject.Inject
 
 @HiltViewModel
 class QuestionViewModel @Inject constructor(
-    @OnlineQualifier private val repositoryOnline: QuestionRepository,
-    @OfflineQualifier private val repositoryOffline: QuestionRepository,
-    private val commonRepository: CommonRepository,
+    private val repositoryOnline: QuestionRepository,
     private val authRepository: AuthRepository
 ) : ViewModel() {
-
-
-    private val _questionCreateFlow = MutableStateFlow<Resource<Unit>?>(null)
-    val questionCreateFlow = _questionCreateFlow.asStateFlow()
 
     private val _questionDownloadFlow = MutableStateFlow<Resource<Double>?>(null)
     val questionDownloadFlow = _questionDownloadFlow.asStateFlow()
@@ -40,23 +31,25 @@ class QuestionViewModel @Inject constructor(
     var questions: Flow<PagingData<Question>>? = null
 
     private val _departmentCountFlow = MutableStateFlow<Map<String, Int>>(emptyMap())
-    val departmentCountFlow: StateFlow<Map<String, Int>> = _departmentCountFlow
+    val departmentCountFlow = _departmentCountFlow.asStateFlow()
 
     private val _courseCountFlow = MutableStateFlow<Map<String, Int>>(emptyMap())
-    val courseCountFlow: StateFlow<Map<String, Int>> = _courseCountFlow
+    val courseCountFlow = _courseCountFlow.asStateFlow()
 
     private val _userResponseFlow = MutableStateFlow<Map<String, User>>(emptyMap())
-    val userResponseFlow: StateFlow<Map<String, User>> = _userResponseFlow
+    val userResponseFlow = _userResponseFlow.asStateFlow()
 
-    val token = commonRepository.getSting(Constants.KEY_USER_TOKEN)
+    private val token = repositoryOnline.getToken()
 
+    private val _uploadProgressFlow =  MutableStateFlow<String?>(null)
+    val uploadProgressFlow =  _uploadProgressFlow.asStateFlow()
 
-    fun createQuestion(newQuestion: Question) = viewModelScope.launch {
-        _questionCreateFlow.value = Resource.Loading
-        token?.let {
-            _questionCreateFlow.value = repositoryOnline.createQuestion(newQuestion, it)
-        }
-    }
+    private val _uploadCompleteFlow =  MutableStateFlow<Boolean?>(null)
+    val uploadCompleteFlow =  _uploadCompleteFlow.asStateFlow()
+
+    private val _uploadLoadingFlow =  MutableStateFlow(false)
+    val uploadLoadingFlow =  _uploadLoadingFlow.asStateFlow()
+
 
 
     fun downloadFile(fileName: String) = viewModelScope.launch {
@@ -64,14 +57,6 @@ class QuestionViewModel @Inject constructor(
         val result = repositoryOnline.downloadFile(fileName)
         _questionDownloadFlow.value = result
     }
-
-    fun updateQuestion(id: String, isApproved: Int) =
-        viewModelScope.launch {
-            token?.let {
-                repositoryOnline.updateQuestion(id, isApproved, it)
-            }
-        }
-
 
     fun getQuestionsByDepartment(department: String) = viewModelScope.launch {
         try {
@@ -141,6 +126,34 @@ class QuestionViewModel @Inject constructor(
 
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    fun uploadFile(
+        uri: Uri,
+        question: Question
+    ) = viewModelScope.launch {
+        token?.let { key ->
+            repositoryOnline.uploadFile(
+                uri,
+                question,
+                taskSnapshot = { taskSnapshot->
+                    val progress = (100.0 * taskSnapshot.bytesTransferred) / taskSnapshot.totalByteCount
+                    _uploadProgressFlow.value = "$progress% Uploaded"
+                    _uploadLoadingFlow.value = taskSnapshot.task.isInProgress
+                }
+            ) { question->
+                viewModelScope.launch {
+                    repositoryOnline.createQuestion(question, key) {
+                        _uploadCompleteFlow.value = it
+                        viewModelScope.launch {
+                            delay(200)
+                            _uploadProgressFlow.value = null
+                            _uploadCompleteFlow.value = null
+                        }
+                    }
+                }
+            }
         }
     }
 

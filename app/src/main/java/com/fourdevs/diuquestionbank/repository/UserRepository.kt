@@ -1,7 +1,6 @@
 package com.fourdevs.diuquestionbank.repository
 
 import android.app.Activity
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
@@ -12,7 +11,7 @@ import com.fourdevs.diuquestionbank.core.Permissions
 import com.fourdevs.diuquestionbank.data.Question
 import com.fourdevs.diuquestionbank.firebase.RealtimeDatabase
 import com.fourdevs.diuquestionbank.models.UserInfo
-import com.fourdevs.diuquestionbank.modules.OnlineQualifier
+import com.fourdevs.diuquestionbank.utilities.PreferenceManager
 import kotlinx.coroutines.flow.Flow
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
@@ -21,9 +20,8 @@ class UserRepository @Inject constructor(
     private val apiClient: ApiClient,
     private val loadAds: LoadAds,
     private val realtimeDatabase: RealtimeDatabase,
-    @OnlineQualifier
     private val repositoryOnline: QuestionRepository,
-    private val repositoryCommon: CommonRepository,
+    private val preferenceManager: PreferenceManager,
     private val permission: Permissions
 ) {
     suspend fun createUserInfo(
@@ -80,16 +78,16 @@ class UserRepository @Inject constructor(
     }
 
     fun putString(key:String, value:String) {
-        repositoryCommon.putString(key, value)
+        preferenceManager.putString(key, value)
     }
 
     fun putBoolean(key:String, value:Boolean) {
-        repositoryCommon.putBoolean(key, value)
+        preferenceManager.putBoolean(key, value)
     }
 
-    fun getString(key: String) : String? = repositoryCommon.getSting(key)
+    fun getString(key: String) : String? = preferenceManager.getString(key)
 
-    fun getBoolean(key: String) : Boolean = repositoryCommon.getBoolean(key)
+    fun getBoolean(key: String) : Boolean = preferenceManager.getBoolean(key)
 
     fun checkPermissions(): Boolean {
         return permission.checkPermissions()

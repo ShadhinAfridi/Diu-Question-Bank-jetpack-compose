@@ -5,6 +5,7 @@ import com.fourdevs.diuquestionbank.data.Resource
 import com.fourdevs.diuquestionbank.models.ApiResponse
 import com.fourdevs.diuquestionbank.models.ApiUserResponse
 import com.fourdevs.diuquestionbank.models.UserInfo
+import com.google.android.gms.ads.appopen.AppOpenAd.AppOpenAdLoadCallback
 
 interface ApiClient {
 
@@ -16,7 +17,7 @@ interface ApiClient {
 
 
     //Questions
-    suspend fun createQuestion(newQuestion: Question, token: String): Resource<Unit>
+    suspend fun createQuestion(newQuestion: Question, token: String, callback: (Boolean) -> Unit)
     suspend fun getQuestionsByDepartment(
         department: String,
         token: String,

@@ -2,9 +2,11 @@ package com.fourdevs.diuquestionbank.ui.components
 
 import android.annotation.SuppressLint
 import android.net.Uri
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,12 +18,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -35,6 +40,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,7 +50,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -58,23 +68,38 @@ import androidx.compose.ui.unit.dp
 import androidx.documentfile.provider.DocumentFile
 import androidx.navigation.NavController
 import com.fourdevs.diuquestionbank.R
+import com.fourdevs.diuquestionbank.data.Question
 import com.fourdevs.diuquestionbank.data.departments
 import com.fourdevs.diuquestionbank.data.getCourseList
+import com.fourdevs.diuquestionbank.models.Notification
+import com.fourdevs.diuquestionbank.ui.authentication.ErrorMessage
+import com.fourdevs.diuquestionbank.ui.authentication.ShowToast
+import com.fourdevs.diuquestionbank.ui.authentication.showToast
+import com.fourdevs.diuquestionbank.viewmodel.NotificationViewModel
+import com.fourdevs.diuquestionbank.viewmodel.QuestionViewModel
+import kotlinx.coroutines.delay
 import java.util.Calendar
+import java.util.Date
 
 @Composable
-fun UploadScreen(navController: NavController) {
+fun UploadScreen(
+    navController: NavController,
+    questionViewModel: QuestionViewModel,
+    notificationViewModel: NotificationViewModel
+) {
     AnimatedVisibility(visible = true) {
-        Upload(navController = navController)
+        Upload(navController = navController, questionViewModel, notificationViewModel)
     }
 }
 
-@SuppressLint("ResourceType", "UnrememberedMutableState")
+@SuppressLint("ResourceType")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Upload(navController: NavController) {
-
-    val localFocusManager = LocalFocusManager.current
+fun Upload(
+    navController: NavController,
+    questionViewModel: QuestionViewModel,
+    notificationViewModel: NotificationViewModel
+) {
     val departmentList = emptyList<String>().toMutableList()
     departments.forEach { department ->
         departmentList += department.name
@@ -84,19 +109,20 @@ fun Upload(navController: NavController) {
     val semesters = listOf("Spring", "Summer", "Fall")
     val courseCodes = mutableListOf<String>()
     val courseNames = mutableListOf<String>()
-    var departmentName by remember { mutableStateOf("") }
+    var departmentName by rememberSaveable { mutableStateOf("") }
     getCourseList(departmentName).forEach { course ->
         courseCodes.add(course.code)
         courseNames.add(course.name)
     }
-    var courseCode by remember { mutableStateOf("") }
-    var courseName by remember { mutableStateOf("") }
-    var shiftName by remember { mutableStateOf("") }
-    var examName by remember { mutableStateOf("") }
-    var semesterName by remember { mutableStateOf("") }
-    var year by remember { mutableStateOf("") }
+    var courseCode by rememberSaveable { mutableStateOf("") }
+    var courseName by rememberSaveable { mutableStateOf("") }
+    var shiftName by rememberSaveable { mutableStateOf("") }
+    var examName by rememberSaveable { mutableStateOf("") }
+    var semesterName by rememberSaveable { mutableStateOf("") }
+    var year by rememberSaveable { mutableStateOf("") }
+    val context = LocalContext.current
 
-    var selectedFileUri by remember { mutableStateOf<Uri?>(null) }
+    var selectedFileUri by rememberSaveable { mutableStateOf<Uri?>(null) }
 
     val launcher =
         rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -104,6 +130,38 @@ fun Upload(navController: NavController) {
                 selectedFileUri = uri
             }
         }
+
+    var clear by rememberSaveable {
+        mutableStateOf(false)
+    }
+    var enabledButton by rememberSaveable {
+        mutableStateOf(true)
+    }
+    val uploadComplete = questionViewModel.uploadCompleteFlow.collectAsState()
+
+    uploadComplete.value?.let {
+        Log.d("Afridi", it.toString())
+
+        if (it) {
+            // Simulate upload process with a delay
+            LaunchedEffect(true) {
+                clear = true
+                selectedFileUri = null
+                notificationViewModel.showNotification(
+                    Notification(
+                        1,
+                        "Complete",
+                        "File Uploaded Successfully"
+                    )
+                )
+                delay(200)
+                enabledButton = true
+                clear = false
+            }
+        }
+    }
+
+
 
 
     Scaffold(
@@ -116,43 +174,67 @@ fun Upload(navController: NavController) {
             modifier = Modifier.padding(padding)
         ) {
 
+
+            ShowUploadProgress(questionViewModel = questionViewModel)
+
             UploadRow {
-                departmentName = dropDownField(
+                DropDownField(
                     Modifier.fillMaxWidth(),
                     label = stringResource(id = R.string.department),
-                    options = departmentList
-                )
+                    options = departmentList,
+                    clear = clear
+                ) {
+                    departmentName = it
+                }
             }
 
             UploadRow {
-                shiftName =
-                    dropDownField(Modifier.fillMaxWidth(0.5f), label = "Shift", options = shifts)
+                DropDownField(
+                    Modifier.fillMaxWidth(0.5f),
+                    label = "Shift",
+                    options = shifts,
+                    clear = clear
+                ) {
+                    shiftName = it
+                }
                 Spacer(modifier = Modifier.padding(5.dp))
-                examName = dropDownField(Modifier.fillMaxWidth(1f), label = "Exam", options = exams)
+                DropDownField(
+                    Modifier.fillMaxWidth(1f),
+                    label = "Exam",
+                    options = exams,
+                    clear = clear
+                ) {
+                    examName = it
+                }
             }
 
-            courseCode = uploadScreen(
-                list = courseCodes,
-                localFocusManager = localFocusManager,
-                label = "Course code"
-            )
+            UploadTextField(list = courseCodes, label = "Course code", clear = clear) {
+                courseCode = it
+            }
 
-            courseName = uploadScreen(
-                list = courseNames,
-                localFocusManager = localFocusManager,
-                label = "Course name"
-            )
+            UploadTextField(list = courseNames, label = "Course name", clear = clear) {
+                courseName = it
+            }
 
 
             UploadRow {
-                semesterName = dropDownField(
+                DropDownField(
                     Modifier.fillMaxWidth(0.5f),
                     label = "Semester",
-                    options = semesters
-                )
+                    options = semesters,
+                    clear = clear
+                ) {
+                    semesterName = it
+                }
                 Spacer(modifier = Modifier.padding(5.dp))
-                year =
-                    dropDownField(Modifier.fillMaxWidth(1f), label = "Year", options = yearList())
+                DropDownField(
+                    Modifier.fillMaxWidth(1f),
+                    label = "Year",
+                    options = yearList(),
+                    clear = clear
+                ) {
+                    year = it
+                }
             }
 
 
@@ -160,7 +242,8 @@ fun Upload(navController: NavController) {
                 onClick = { launcher.launch(arrayOf("application/pdf")) },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 10.dp, bottom = 5.dp, start = 10.dp, end = 10.dp),
+                    .padding(top = 10.dp, bottom = 5.dp, start = 10.dp, end = 10.dp)
+                    .animateContentSize(),
                 colors = CardDefaults.outlinedCardColors(
                     containerColor = Color.Transparent
                 ),
@@ -197,7 +280,33 @@ fun Upload(navController: NavController) {
 
 
             FilledTonalButton(
-                onClick = {},
+                onClick = {
+                    selectedFileUri?.let { uri ->
+                        enabledButton = false
+                        if (departmentName.isNotEmpty() && shiftName.isNotEmpty() && examName.isNotEmpty() && courseCode.isNotEmpty() && courseName.isNotEmpty() && semesterName.isNotEmpty() && year.isNotEmpty() && selectedFileUri != null) {
+                            val question = Question(
+                                "",
+                                courseCode,
+                                courseName,
+                                "",
+                                departmentName,
+                                shiftName,
+                                examName,
+                                semesterName,
+                                year,
+                                "",
+                                "${Date()}",
+                                0,
+                                ""
+                            )
+                            questionViewModel.uploadFile(uri, question)
+                        } else {
+                            enabledButton = true
+                            showToast(context, "All fields are required!")
+                        }
+                    }
+                },
+                enabled = enabledButton,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 10.dp, horizontal = 10.dp),
@@ -239,10 +348,20 @@ fun UploadRow(unit: @Composable (RowScope.() -> Unit)) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun dropDownField(modifier: Modifier, label: String, options: List<String>): String {
+fun DropDownField(
+    modifier: Modifier,
+    label: String,
+    options: List<String>,
+    clear: Boolean,
+    callback: (String) -> Unit
+) {
 
     var expanded by remember { mutableStateOf(false) }
     var selectedOptionText by remember { mutableStateOf("") }
+    if (clear) {
+        selectedOptionText = ""
+    }
+
 
     ExposedDropdownMenuBox(
         expanded = expanded,
@@ -252,7 +371,10 @@ fun dropDownField(modifier: Modifier, label: String, options: List<String>): Str
         OutlinedTextField(
             modifier = Modifier
                 .menuAnchor()
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .focusProperties {
+                    canFocus = false
+                },
             // The `menuAnchor` modifier must be passed to the text field for correctness.
             readOnly = true,
             value = selectedOptionText,
@@ -272,9 +394,8 @@ fun dropDownField(modifier: Modifier, label: String, options: List<String>): Str
                 errorContainerColor = Color.Transparent,
                 unfocusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
                 unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
-            ),
-
             )
+        )
         ExposedDropdownMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false }
@@ -284,6 +405,7 @@ fun dropDownField(modifier: Modifier, label: String, options: List<String>): Str
                     text = { Text(selectionOption) },
                     onClick = {
                         selectedOptionText = selectionOption
+                        callback(selectedOptionText)
                         expanded = false
                     },
                     contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding
@@ -291,8 +413,6 @@ fun dropDownField(modifier: Modifier, label: String, options: List<String>): Str
             }
         }
     }
-
-    return selectedOptionText
 }
 
 
@@ -311,32 +431,51 @@ fun yearList(): List<String> {
 
 
 @Composable
-fun uploadScreen(
+fun UploadTextField(
     list: List<String>,
-    localFocusManager: FocusManager,
-    label: String
-): String {
+    label: String,
+    clear: Boolean,
+    callback: (String) -> Unit
+) {
 
-    var value by rememberSaveable(stateSaver = TextFieldValue.Saver) {
-        mutableStateOf(TextFieldValue(""))
+    var textField by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue("", TextRange(4, 20)))
     }
+    if (clear) {
+        textField = TextFieldValue(
+            text = "", selection = TextRange(0)
+        )
+    }
+    var isError by remember { mutableStateOf(false) }
+    var focused by remember { mutableStateOf(false) }
     var dropDownList by remember {
         mutableStateOf(listOf<String>())
     }
+    val localFocusManager = LocalFocusManager.current
+    val focusRequester = FocusRequester()
 
     OutlinedTextField(
-        value = value,
+        value = textField,
         onValueChange = {
-            value = it
+            textField = it
+            callback(it.text)
             dropDownList = list.filter { item ->
                 item.contains(it.text, ignoreCase = true) && !item.equals(
                     it.text, ignoreCase = true
                 )
             }
+            isError = it.text.isEmpty()
         },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 5.dp, horizontal = 10.dp),
+            .padding(vertical = 5.dp, horizontal = 10.dp)
+            .focusRequester(focusRequester)
+            .onFocusChanged { focusState ->
+                if (focusState.isFocused) {
+                    focused = true
+                    if (textField.text.isEmpty()) isError = true
+                } else focused = false
+            },
         label = { Text(text = label) },
         colors = TextFieldDefaults.colors(
             focusedContainerColor = Color.Transparent,
@@ -348,35 +487,82 @@ fun uploadScreen(
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text, imeAction = ImeAction.Next
         ),
-        textStyle = MaterialTheme.typography.bodyMedium,
         keyboardActions = KeyboardActions(onNext = {
             localFocusManager.moveFocus(FocusDirection.Down)
         }),
+        textStyle = MaterialTheme.typography.bodyMedium,
+        isError = isError,
         supportingText = {
-            LazyColumn(
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(1.dp),
-            ) {
-                items(dropDownList.size) {
-                    dropDownList.forEach {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier
-                                .clickable(true) {
-                                    value = TextFieldValue(
-                                        text = it, selection = TextRange(it.length)
-                                    )
-                                    dropDownList = mutableListOf()
-                                }
-                                .padding(5.dp)
-                                .fillMaxWidth()
-                        )
+            if (isError) {
+                ErrorMessage(label = "This field is required")
+            } else {
+                LazyColumn(
+                    horizontalAlignment = Alignment.Start,
+                    verticalArrangement = Arrangement.spacedBy(1.dp),
+                ) {
+                    items(dropDownList.size) {
+                        dropDownList.forEach {
+                            Text(
+                                text = it,
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier
+                                    .clickable(true) {
+                                        textField = TextFieldValue(
+                                            text = it, selection = TextRange(it.length)
+                                        )
+                                        dropDownList = mutableListOf()
+                                    }
+                                    .padding(5.dp)
+                                    .fillMaxWidth()
+                            )
+                        }
                     }
                 }
             }
         })
 
-    return value.text
+}
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ShowUploadProgress(questionViewModel: QuestionViewModel) {
+    val uploadProgress = questionViewModel.uploadProgressFlow.collectAsState()
+    val uploadComplete = questionViewModel.uploadCompleteFlow.collectAsState()
+    val uploadLoading = questionViewModel.uploadLoadingFlow.collectAsState()
+    uploadComplete.value?.let {
+        if (it) {
+            ShowToast(message = "Uploaded successfully", context = LocalContext.current)
+        } else {
+            ShowToast(message = "Upload unsuccessful", context = LocalContext.current)
+        }
+    }
+
+
+    if (uploadLoading.value) {
+        AlertDialog(
+            onDismissRequest = {}
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .padding(10.dp)
+                    .wrapContentHeight()
+                    .fillMaxWidth()
+            ) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Text(
+                    text = uploadProgress.value ?: "Uploading..",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(start = 10.dp)
+                )
+            }
+        }
+    }
+
 
 }

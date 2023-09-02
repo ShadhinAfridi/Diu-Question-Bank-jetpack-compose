@@ -31,11 +31,18 @@ object Constants {
 
     const val KEY_QUESTIONS = "Questions"
     const val PERMISSION_REQUEST_CODE = 7
+    const val NOTIFICATION_REQUEST_CODE = 10
 
     const val DATA_NAME = "Name"
     const val DATA_EMAIL = "Email"
     const val DATA_PASSWORD = "Password"
     const val DATA_CONFIRM_PASSWORD = "Confirm Password"
+    const val CHANNEL_ID = "diuQuestionBank"
+
+    const val KEY_DARK_MODE = "darkMode"
+    const val KEY_SYSTEM_MODE = "systemMode"
+
+
 
 
 }

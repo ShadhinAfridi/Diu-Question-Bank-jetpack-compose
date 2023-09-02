@@ -1,18 +1,17 @@
 package com.fourdevs.diuquestionbank.repository
 
 import android.graphics.Bitmap
-import androidx.lifecycle.viewModelScope
 import com.fourdevs.diuquestionbank.core.ApiClient
 import com.fourdevs.diuquestionbank.core.InternetConnection
 import com.fourdevs.diuquestionbank.core.SendEmail
 import com.fourdevs.diuquestionbank.data.Resource
 import com.fourdevs.diuquestionbank.models.ApiUserResponse
 import com.fourdevs.diuquestionbank.models.UserInfo
+import com.fourdevs.diuquestionbank.utilities.PreferenceManager
 import com.fourdevs.diuquestionbank.utilities.await
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.UserProfileChangeRequest
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class AuthRepository @Inject constructor(
@@ -20,8 +19,8 @@ class AuthRepository @Inject constructor(
     private val sendEmail: SendEmail,
     private val apiClient: ApiClient,
     private val internetConnection: InternetConnection,
-    private val repositoryCommon: CommonRepository,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val preferenceManager: PreferenceManager
 ) {
 
     //Firebase Auth
@@ -105,19 +104,19 @@ class AuthRepository @Inject constructor(
     }
 
     fun putString(key:String, value:String) {
-        repositoryCommon.putString(key, value)
+        preferenceManager.putString(key, value)
     }
 
     fun putBoolean(key:String, value:Boolean) {
-        repositoryCommon.putBoolean(key, value)
+        preferenceManager.putBoolean(key, value)
     }
 
-    fun getString(key: String) : String? = repositoryCommon.getSting(key)
+    fun getString(key: String) : String? = preferenceManager.getString(key)
 
-    fun getBoolean(key: String) : Boolean = repositoryCommon.getBoolean(key)
+    fun getBoolean(key: String) : Boolean = preferenceManager.getBoolean(key)
 
     fun clearPreferences() {
-        repositoryCommon.clearPreferences()
+        preferenceManager.clear()
     }
 
     suspend fun getUserInfo(id:String) : UserInfo?{

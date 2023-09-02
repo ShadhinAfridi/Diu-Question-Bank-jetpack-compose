@@ -36,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -104,12 +105,14 @@ private fun GetData(
     questionViewModel: QuestionViewModel,
     userViewModel: UserViewModel
 ) {
-    var loading by remember { mutableStateOf(false) }
+    var loading by rememberSaveable { mutableStateOf(true) }
     val questions = questionViewModel.questions?.collectAsLazyPagingItems()
     val scrollState = rememberLazyListState()
 
-    LaunchedEffect(scrollState) {
-        questionViewModel.getQuestionsByCourse(departmentName, courseName!!, shift!!, exam!!)
+    if(loading) {
+        LaunchedEffect(scrollState) {
+            questionViewModel.getQuestionsByCourse(departmentName, courseName!!, shift!!, exam!!)
+        }
     }
 
     LazyColumn(state = scrollState) {

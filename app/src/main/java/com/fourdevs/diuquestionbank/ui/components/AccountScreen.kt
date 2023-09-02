@@ -26,6 +26,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -65,13 +66,15 @@ fun AccountScreen(
     userViewModel: UserViewModel,
     questionViewModel: QuestionViewModel
 ) {
-    Column {
-        UserCard(userViewModel = userViewModel)
-        UserUpload(
-            userViewModel = userViewModel,
-            questionViewModel = questionViewModel,
-            navController = navController
-        )
+    Scaffold {
+        Column(modifier = Modifier.padding(it)) {
+            UserCard(userViewModel = userViewModel)
+            UserUpload(
+                userViewModel = userViewModel,
+                questionViewModel = questionViewModel,
+                navController = navController
+            )
+        }
     }
 }
 
@@ -275,23 +278,15 @@ fun UserUpload(
 
     val questions = userViewModel.questions?.collectAsLazyPagingItems()
     val scrollState = rememberLazyListState()
-    var loading by remember {
-        mutableStateOf(true)
-    }
-
     LaunchedEffect(scrollState) {
         userViewModel.getQuestionsByUser(userViewModel.getString(Constants.KEY_USER_ID)!!)
     }
-
-    if (loading) {
-        LoadingItem()
-    }
-
 
     LazyVerticalStaggeredGrid(
         columns = StaggeredGridCells.Fixed(2),
         verticalItemSpacing = 4.dp,
         horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = modifier.fillMaxSize(),
         content = {
             questions?.itemCount?.let {
                 items(it) { count ->
@@ -301,29 +296,8 @@ fun UserUpload(
                         navController = navController
                     )
                 }
-
-                when (questions.loadState.append) {
-                    is LoadState.Error -> {
-                        item {
-                            ErrorItem()
-                            loading = false
-                        }
-                    }
-
-                    LoadState.Loading -> {
-                        item {
-                            LoadingItem()
-                            loading = true
-                        }
-                    }
-
-                    is LoadState.NotLoading -> {
-                        loading = false
-                    }
-                }
             }
-        },
-        modifier = modifier.fillMaxSize()
+        }
     )
 
 
