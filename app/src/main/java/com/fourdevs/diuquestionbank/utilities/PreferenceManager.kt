@@ -26,6 +26,10 @@ class PreferenceManager @Inject constructor(
         return sharedPreferences.getBoolean(key, false)
     }
 
+    fun getThemeBoolean(key: String): Boolean {
+        return sharedPreferences.getBoolean(key, true)
+    }
+
     fun getString(key: String): String? {
         return sharedPreferences.getString(key, null)
     }

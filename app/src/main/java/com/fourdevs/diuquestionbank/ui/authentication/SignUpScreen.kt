@@ -102,7 +102,7 @@ fun SignUp(navController: NavHostController, viewModel: AuthViewModel) {
                         email
                     )
                 ) {
-                    if (!checkDiuEmail(email)) {
+                    if (checkDiuEmail(email)) {
                         if (password.length >= 6 && confirmPassword.length >= 6 && password == confirmPassword) {
                             viewModel.signupUser(userName, email, password)
                             loading = true
@@ -111,7 +111,7 @@ fun SignUp(navController: NavHostController, viewModel: AuthViewModel) {
                             showToast(context, "Password don't match!")
                         }
                     } else {
-                        showNoInternet(context)
+                        showToast(context, "Only for DIU students with DIU email.")
                     }
                 }
             } else {

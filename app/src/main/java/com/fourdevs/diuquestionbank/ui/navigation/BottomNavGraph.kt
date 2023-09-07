@@ -35,7 +35,7 @@ fun NavGraphBuilder.bottomNavGraph(
 ) {
     navigation(startDestination = Home.route, route = BottomNav.route) {
         composable(Home.route) {
-            HomeScreen(navController, questionViewModel, userViewModel, notificationViewModel)
+            HomeScreen(navController, userViewModel, notificationViewModel)
         }
         composable(Questions.route) {
             QuestionsScreen(navController, questionViewModel, userViewModel)
@@ -50,7 +50,7 @@ fun NavGraphBuilder.bottomNavGraph(
             ResourceScreen(navController, userViewModel)
         }
         composable(Upload.route) {
-            UploadScreen(navController, questionViewModel, notificationViewModel)
+            UploadScreen(navController, questionViewModel, notificationViewModel, userViewModel)
         }
         composable(Department.route + "/{department}") {
             val departmentName = it.arguments?.getString("department")
@@ -73,7 +73,7 @@ fun NavGraphBuilder.bottomNavGraph(
         composable(PdfViewer.route + "/{fileName}/{id}") {
             val fileName = it.arguments?.getString("fileName")
             val id = it.arguments?.getString("id")
-            PdfViewerScreen(fileName, id, navController, userViewModel)
+            PdfViewerScreen(fileName, id, navController)
         }
 
         composable(EditProfileScreen.route) {

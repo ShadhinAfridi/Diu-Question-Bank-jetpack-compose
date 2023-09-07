@@ -38,7 +38,7 @@ class MainActivity : ComponentActivity() {
                 // Perform background tasks using a coroutine
                 lifecycleScope.launch {
                     authViewModel.currentUser?.let {
-                        authViewModel.getIdToken(it)
+                        //authViewModel.getIdToken(it)
                     }
                 }
             }

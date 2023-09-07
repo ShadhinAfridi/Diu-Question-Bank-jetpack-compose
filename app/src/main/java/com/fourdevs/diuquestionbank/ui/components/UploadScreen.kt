@@ -1,12 +1,15 @@
 package com.fourdevs.diuquestionbank.ui.components
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.net.Uri
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -77,6 +80,7 @@ import com.fourdevs.diuquestionbank.ui.authentication.ShowToast
 import com.fourdevs.diuquestionbank.ui.authentication.showToast
 import com.fourdevs.diuquestionbank.viewmodel.NotificationViewModel
 import com.fourdevs.diuquestionbank.viewmodel.QuestionViewModel
+import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
 import kotlinx.coroutines.delay
 import java.util.Calendar
 import java.util.Date
@@ -85,10 +89,24 @@ import java.util.Date
 fun UploadScreen(
     navController: NavController,
     questionViewModel: QuestionViewModel,
-    notificationViewModel: NotificationViewModel
+    notificationViewModel: NotificationViewModel,
+    userViewModel: UserViewModel
 ) {
-    AnimatedVisibility(visible = true) {
-        Upload(navController = navController, questionViewModel, notificationViewModel)
+    AnimatedVisibility(
+        visible = true,
+        // Set the start width to 20 (pixels), 0 by default
+        exit = shrinkHorizontally(
+            // Overwrites the default animation with tween for this shrink animation.
+            animationSpec = tween(),
+            // Shrink towards the end (i.e. right edge for LTR, left edge for RTL). The default
+            // direction for the shrink is towards [Alignment.Start]
+            shrinkTowards = Alignment.End,
+        ) { fullWidth ->
+            // Set the end width for the shrink animation to a quarter of the full width.
+            fullWidth / 4
+        }
+    ) {
+        Upload(navController = navController, questionViewModel, notificationViewModel, userViewModel)
     }
 }
 
@@ -98,7 +116,8 @@ fun UploadScreen(
 fun Upload(
     navController: NavController,
     questionViewModel: QuestionViewModel,
-    notificationViewModel: NotificationViewModel
+    notificationViewModel: NotificationViewModel,
+    userViewModel: UserViewModel
 ) {
     val departmentList = emptyList<String>().toMutableList()
     departments.forEach { department ->
@@ -138,6 +157,7 @@ fun Upload(
         mutableStateOf(true)
     }
     val uploadComplete = questionViewModel.uploadCompleteFlow.collectAsState()
+    val activity = LocalContext.current as Activity
 
     uploadComplete.value?.let {
         Log.d("Afridi", it.toString())
@@ -239,7 +259,13 @@ fun Upload(
 
 
             OutlinedCard(
-                onClick = { launcher.launch(arrayOf("application/pdf")) },
+                onClick = {
+                    if(userViewModel.checkPermissions()) {
+                        launcher.launch(arrayOf("application/pdf"))
+                    } else {
+                        userViewModel.askPermission(activity)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 10.dp, bottom = 5.dp, start = 10.dp, end = 10.dp)

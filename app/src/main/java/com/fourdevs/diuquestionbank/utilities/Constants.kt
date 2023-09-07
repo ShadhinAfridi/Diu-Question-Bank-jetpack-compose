@@ -39,8 +39,10 @@ object Constants {
     const val DATA_CONFIRM_PASSWORD = "Confirm Password"
     const val CHANNEL_ID = "diuQuestionBank"
 
-    const val KEY_DARK_MODE = "darkMode"
+
     const val KEY_SYSTEM_MODE = "systemMode"
+    const val KEY_PACKAGE_NAME = "com.fourdevs.diuquestionbank"
+
 
 
 

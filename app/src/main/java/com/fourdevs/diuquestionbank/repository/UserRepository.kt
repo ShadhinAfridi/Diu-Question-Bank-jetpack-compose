@@ -6,10 +6,13 @@ import android.graphics.BitmapFactory
 import android.util.Base64
 import androidx.paging.PagingData
 import com.fourdevs.diuquestionbank.core.ApiClient
+import com.fourdevs.diuquestionbank.core.InternetConnection
 import com.fourdevs.diuquestionbank.core.LoadAds
 import com.fourdevs.diuquestionbank.core.Permissions
 import com.fourdevs.diuquestionbank.data.Question
+import com.fourdevs.diuquestionbank.firebase.FirebaseFirestore
 import com.fourdevs.diuquestionbank.firebase.RealtimeDatabase
+import com.fourdevs.diuquestionbank.models.HelpRequest
 import com.fourdevs.diuquestionbank.models.UserInfo
 import com.fourdevs.diuquestionbank.utilities.PreferenceManager
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +25,9 @@ class UserRepository @Inject constructor(
     private val realtimeDatabase: RealtimeDatabase,
     private val repositoryOnline: QuestionRepository,
     private val preferenceManager: PreferenceManager,
-    private val permission: Permissions
+    private val permission: Permissions,
+    private val internetConnection: InternetConnection,
+    private val firebaseFirestore: FirebaseFirestore
 ) {
     suspend fun createUserInfo(
         userInfo: UserInfo
@@ -87,13 +92,23 @@ class UserRepository @Inject constructor(
 
     fun getString(key: String) : String? = preferenceManager.getString(key)
 
-    fun getBoolean(key: String) : Boolean = preferenceManager.getBoolean(key)
+    fun getThemeBoolean(key: String) : Boolean = preferenceManager.getThemeBoolean(key)
 
     fun checkPermissions(): Boolean {
         return permission.checkPermissions()
     }
     fun askPermission(activity: Activity) {
         permission.askPermission(activity)
+    }
+
+    fun addHelpResponse(helpRequest: HelpRequest, callback: (Boolean) -> Unit){
+        firebaseFirestore.addHelpResponse(helpRequest, callback)
+    }
+
+    fun checkInternetConnection() = internetConnection.checkForInternet()
+
+    fun getVersionCode(versionCode: (Int) -> Unit) {
+        realtimeDatabase.getVersionCode(versionCode)
     }
 
 

@@ -1,6 +1,5 @@
 package com.fourdevs.diuquestionbank.ui.ads
 
-import android.util.Log
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,7 +36,6 @@ fun AdmobBanner(
     }
 
     adUnitIdState?.let {
-        Log.d("Afridi", it)
         AndroidView(
             modifier = modifier.fillMaxWidth(),
             factory = { context ->

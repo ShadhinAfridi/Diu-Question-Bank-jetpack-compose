@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.rememberScrollState
@@ -49,7 +48,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.fourdevs.diuquestionbank.R
 import com.fourdevs.diuquestionbank.data.Question
@@ -275,11 +273,22 @@ fun UserUpload(
     questionViewModel: QuestionViewModel,
     navController: NavHostController
 ) {
+    val questions = userViewModel.questions.collectAsLazyPagingItems()
 
-    val questions = userViewModel.questions?.collectAsLazyPagingItems()
-    val scrollState = rememberLazyListState()
-    LaunchedEffect(scrollState) {
-        userViewModel.getQuestionsByUser(userViewModel.getString(Constants.KEY_USER_ID)!!)
+    // Use remember to remember whether the function has been called
+    var hasQuestionsLoaded by remember {
+        mutableStateOf(false)
+    }
+
+    // Use LaunchedEffect to call the function only once
+    LaunchedEffect(hasQuestionsLoaded) {
+        if (!hasQuestionsLoaded) {
+            userViewModel.getString(Constants.KEY_USER_ID)?.let { userId ->
+                userViewModel.getQuestionsByUser(userId)
+                // Update the state to indicate that the function has been called
+                hasQuestionsLoaded = true
+            }
+        }
     }
 
     LazyVerticalStaggeredGrid(
@@ -288,10 +297,10 @@ fun UserUpload(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         modifier = modifier.fillMaxSize(),
         content = {
-            questions?.itemCount?.let {
-                items(it) { count ->
+            items(questions.itemCount) { count ->
+                questions[count]?.let { question ->
                     UserUploadCard(
-                        question = questions[count]!!,
+                        question = question,
                         questionViewModel = questionViewModel,
                         navController = navController
                     )
@@ -299,9 +308,9 @@ fun UserUpload(
             }
         }
     )
-
-
 }
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

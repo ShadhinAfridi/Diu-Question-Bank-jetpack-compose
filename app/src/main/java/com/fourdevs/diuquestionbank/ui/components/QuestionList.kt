@@ -1,10 +1,12 @@
 package com.fourdevs.diuquestionbank.ui.components
 
-import android.util.Log
+import android.app.Activity
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -41,8 +44,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -53,8 +56,8 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.fourdevs.diuquestionbank.R
 import com.fourdevs.diuquestionbank.data.Question
 import com.fourdevs.diuquestionbank.data.Resource
-import com.fourdevs.diuquestionbank.data.departments
 import com.fourdevs.diuquestionbank.ui.ads.AdmobBanner
+import com.fourdevs.diuquestionbank.ui.authentication.showToast
 import com.fourdevs.diuquestionbank.ui.navigation.PdfViewer
 import com.fourdevs.diuquestionbank.viewmodel.QuestionViewModel
 import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
@@ -75,12 +78,20 @@ fun QuestionList(
     userViewModel: UserViewModel
 ) {
 
+    val context = LocalContext.current
+    if(!userViewModel.checkInternetConnection()) {
+        showToast(context, "No internet!")
+    }
+
     Scaffold(
         topBar = {
             TopAppBarWithBackIcon(navController = navController, name = department!!)
         }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
+        Box(
+            modifier = Modifier
+                .padding(padding)
+        ) {
             GetData(
                 navController = navController,
                 departmentName = department!!,
@@ -108,21 +119,29 @@ private fun GetData(
     var loading by rememberSaveable { mutableStateOf(true) }
     val questions = questionViewModel.questions?.collectAsLazyPagingItems()
     val scrollState = rememberLazyListState()
+    var hasQuestionsLoaded by remember {
+        mutableStateOf(false)
+    }
 
-    if(loading) {
-        LaunchedEffect(scrollState) {
+    // Use LaunchedEffect to call the function only once
+    LaunchedEffect(hasQuestionsLoaded) {
+        if (!hasQuestionsLoaded) {
             questionViewModel.getQuestionsByCourse(departmentName, courseName!!, shift!!, exam!!)
+            hasQuestionsLoaded = true
         }
     }
 
-    LazyColumn(state = scrollState) {
+    LazyColumn(
+        state = scrollState
+    ) {
 
         questions?.itemCount?.let {itemCount ->
             items(itemCount) { count ->
                 QuestionListItem(
                     navController = navController,
                     question = questions[count]!!,
-                    questionViewModel = questionViewModel
+                    questionViewModel = questionViewModel,
+                    userViewModel = userViewModel
                 )
                 if ((count + 1) % 2 == 0 && count < itemCount - 1) {
                     ElevatedCard(
@@ -132,7 +151,6 @@ private fun GetData(
                         )
                     ){
                         // Content of the card you want to insert
-                        Log.d("Afridi", "$count")
                         AdmobBanner(modifier = Modifier.fillMaxWidth(), adSize = AdSize.MEDIUM_RECTANGLE, userViewModel)
                     }
                 }
@@ -141,7 +159,11 @@ private fun GetData(
             when (questions.loadState.append) {
                 is LoadState.Error -> {
                     item {
-                        ErrorItem()
+                        ErrorItem {
+                            if(it) {
+                                questionViewModel.getQuestionsByCourse(departmentName, courseName!!, shift!!, exam!!)
+                            }
+                        }
                     }
                 }
 
@@ -160,7 +182,11 @@ private fun GetData(
             when (questions.loadState.refresh) {
                 is LoadState.Error -> {
                     item {
-                        ErrorItem()
+                        ErrorItem {
+                            if(it) {
+                                questionViewModel.getQuestionsByCourse(departmentName, courseName!!, shift!!, exam!!)
+                            }
+                        }
                     }
                 }
 
@@ -177,21 +203,45 @@ private fun GetData(
             }
         }
 
+        if(questions?.itemCount==0 && !loading) {
+            item {
+                QuestionListItemWrapper(
+                    onClick = {
+                        questionViewModel.getQuestionsByCourse(departmentName, courseName!!, shift!!, exam!!)
+                    }
+                ){
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ){
+
+                        Text(
+                            text = "No question found.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground,
+                        )
+                        Icon(
+                            imageVector = Icons.Filled.Refresh,
+                            contentDescription = "Reload",
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.size(24.dp)
+                        )
+
+                    }
+                }
+            }
+        }
     }
-
-
 }
 
 @Composable
 fun LoadingItem() {
-    Card(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(8.dp),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
-    ) {
+    QuestionListItemWrapper(
+        onClick = {}
+    ){
         Row(
             Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
@@ -208,38 +258,44 @@ fun LoadingItem() {
 }
 
 @Composable
-fun ErrorItem() {
-    Card(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(8.dp),
-        shape = RoundedCornerShape(8.dp),
+fun ErrorItem(callback: (Boolean) -> Unit) {
+    var clicked by remember {
+        mutableStateOf(false)
+    }
+    QuestionListItemWrapper(
+        onClick = {
+            clicked = !clicked
+            callback(clicked)
+        },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.error)
     ) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(5.dp),
+                .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Image(
+            Icon(
                 imageVector = Icons.Filled.Refresh,
                 contentDescription = "Error",
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.background)
+                tint = MaterialTheme.colorScheme.onError
             )
-            Text(text = "Some error occurred", color = MaterialTheme.colorScheme.background)
+            Text(
+                text = "Some error occurred",
+                color = MaterialTheme.colorScheme.background,
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestionListItem(
     navController: NavHostController,
     question: Question,
-    questionViewModel: QuestionViewModel
+    questionViewModel: QuestionViewModel,
+    userViewModel: UserViewModel
 ) {
     val downloadFlow = questionViewModel.questionDownloadFlow.collectAsState()
     var loading by remember { mutableStateOf(false) }
@@ -250,6 +306,7 @@ fun QuestionListItem(
     val userResponse by questionViewModel.userResponseFlow.collectAsState()
 
     val currentUser = userResponse[question.uploaderId]
+    val activity = LocalContext.current as Activity
 
     if (showPdf) {
         downloadFlow.value?.let {
@@ -267,7 +324,8 @@ fun QuestionListItem(
                     loading = false
                     if (it.result == 100.0) {
                         LaunchedEffect(true) {
-                            navController.navigate(PdfViewer.route + "/${question.link}/${question.questionId}")
+                            userViewModel.showInterstitialAd(activity)
+                            navController.navigate(PdfViewer.route + "/${question.link}/${question.courseName}")
                         }
                     }
                 }
@@ -275,18 +333,14 @@ fun QuestionListItem(
         }
     }
 
-    Card(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxWidth(),
-        elevation = CardDefaults.cardElevation(8.dp),
-        shape = RoundedCornerShape(8.dp),
+
+
+    QuestionListItemWrapper(
         onClick = {
             questionViewModel.downloadFile(question.link)
             showPdf = true
-        },
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background)
-    ) {
+        }
+    ){
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -372,6 +426,27 @@ fun QuestionListItem(
         }
     }
 
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun QuestionListItemWrapper(
+    onClick: () -> Unit,
+    colors: CardColors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.background),
+    content: @Composable (ColumnScope.() -> Unit)
+) {
+    AnimatedVisibility(true) {
+        Card(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(8.dp),
+            shape = RoundedCornerShape(8.dp),
+            onClick = onClick,
+            colors = colors,
+            content = content
+        )
+    }
 }
 
 

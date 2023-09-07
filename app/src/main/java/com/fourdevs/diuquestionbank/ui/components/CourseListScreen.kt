@@ -1,7 +1,6 @@
 package com.fourdevs.diuquestionbank.ui.components
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,12 +24,14 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.fourdevs.diuquestionbank.data.Course
 import com.fourdevs.diuquestionbank.data.getCourseList
 import com.fourdevs.diuquestionbank.ui.ads.AdmobBanner
+import com.fourdevs.diuquestionbank.ui.authentication.showToast
 import com.fourdevs.diuquestionbank.ui.navigation.QuestionList
 import com.fourdevs.diuquestionbank.viewmodel.QuestionViewModel
 import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
@@ -53,6 +54,11 @@ fun CourseListScreen(
     }
 
     var count = 0
+
+    val context = LocalContext.current
+    if(!userViewModel.checkInternetConnection()) {
+        showToast(context, "No internet!")
+    }
 
 
 
@@ -82,8 +88,6 @@ fun CourseListScreen(
                                 containerColor = MaterialTheme.colorScheme.background
                             )
                         ){
-                            // Content of the card you want to insert
-                            Log.d("Afridi", "$count")
                             AdmobBanner(modifier = Modifier.fillMaxWidth(), adSize = AdSize.BANNER, userViewModel)
                         }
                     }

@@ -39,8 +39,6 @@ class QuestionViewModel @Inject constructor(
     private val _userResponseFlow = MutableStateFlow<Map<String, User>>(emptyMap())
     val userResponseFlow = _userResponseFlow.asStateFlow()
 
-    private val token = repositoryOnline.getToken()
-
     private val _uploadProgressFlow =  MutableStateFlow<String?>(null)
     val uploadProgressFlow =  _uploadProgressFlow.asStateFlow()
 
@@ -50,7 +48,7 @@ class QuestionViewModel @Inject constructor(
     private val _uploadLoadingFlow =  MutableStateFlow(false)
     val uploadLoadingFlow =  _uploadLoadingFlow.asStateFlow()
 
-
+    private fun getToken() = repositoryOnline.getToken()
 
     fun downloadFile(fileName: String) = viewModelScope.launch {
         _questionDownloadFlow.value = Resource.Loading
@@ -60,7 +58,7 @@ class QuestionViewModel @Inject constructor(
 
     fun getQuestionsByDepartment(department: String) = viewModelScope.launch {
         try {
-            token?.let {
+            getToken()?.let {
                 questions =
                     repositoryOnline.getQuestionsByDepartment(department, it)
                         .cachedIn(viewModelScope)
@@ -78,7 +76,7 @@ class QuestionViewModel @Inject constructor(
         exam: String
     ) = viewModelScope.launch {
         try {
-            token?.let {
+            getToken()?.let {
                 questions =
                     repositoryOnline.getQuestionsByCourseName(
                         department,
@@ -97,7 +95,7 @@ class QuestionViewModel @Inject constructor(
 
     fun getQuestionCountByDepartment(department: String) = viewModelScope.launch {
         try {
-            token?.let {
+            getToken()?.let {
                 val updatedCounts = repositoryOnline.getQuestionCountByDepartment(department, it)
                 val updatedMap = _departmentCountFlow.value.toMutableMap()
                 updatedMap[department] = updatedCounts
@@ -116,7 +114,7 @@ class QuestionViewModel @Inject constructor(
         exam: String
     ) = viewModelScope.launch {
         try {
-            token?.let {
+            getToken()?.let {
                 val updatedCounts =
                     repositoryOnline.getQuestionCountByName(department, courseName, shift, exam, it)
                 val updatedMap = _courseCountFlow.value.toMutableMap()
@@ -133,7 +131,7 @@ class QuestionViewModel @Inject constructor(
         uri: Uri,
         question: Question
     ) = viewModelScope.launch {
-        token?.let { key ->
+        getToken()?.let { key ->
             repositoryOnline.uploadFile(
                 uri,
                 question,

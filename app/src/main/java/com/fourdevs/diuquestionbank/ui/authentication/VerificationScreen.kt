@@ -51,19 +51,17 @@ fun VerificationScreen(navController: NavHostController, authViewModel: AuthView
 fun VerificationPage(navController: NavHostController, authViewModel: AuthViewModel) {
     val digitCount = 6
     var verificationCode by remember { mutableStateOf("      ") }
-    var timerSeconds by rememberSaveable { mutableIntStateOf(120) }
-    var isTimerRunning by remember { mutableStateOf(true) }
+    var isTimerRunning by remember { mutableStateOf(false) }
     val localFocusManager = LocalFocusManager.current
-    val coroutineScope = rememberCoroutineScope()
     var goToLogIn by remember { mutableStateOf(false) }
     var goToPasswordChange by remember { mutableStateOf(false) }
     var verify by remember { mutableStateOf(false) }
-    var enabled by remember { mutableStateOf(false) }
+    var enabled by remember { mutableStateOf(true) }
     val fromRecoveryPage = authViewModel.getBoolean(Constants.KEY_RECOVER)
     val context = LocalContext.current
     val networkFlow = authViewModel.networkResponseFlow.collectAsState()
     var loading by remember { mutableStateOf(false) }
-
+    val countDownFlow = authViewModel.countDownFlow.collectAsState()
 
     AuthBackground(title = "Verify email") {
         Column(
@@ -133,7 +131,6 @@ fun VerificationPage(navController: NavHostController, authViewModel: AuthViewMo
                 TextButton(
                     enabled = enabled,
                     onClick = {
-
                         if(fromRecoveryPage) {
                             authViewModel.sendRecoverEmail(
                                 authViewModel.getString(Constants.KEY_EMAIL)!!,
@@ -146,17 +143,13 @@ fun VerificationPage(navController: NavHostController, authViewModel: AuthViewMo
                                 authViewModel.getString(Constants.KEY_OTP)!!
                             )
                         }
-
-                        if (!isTimerRunning) {
-                            coroutineScope.launch {
-                                isTimerRunning = true
-                                timerSeconds = 120
-                            }
-                        }
+                        authViewModel.startCountDown()
+                        enabled = false
+                        isTimerRunning = true
                     }
                 ) {
                     Text(
-                        text = if (isTimerRunning) "Resend in "+String.format("%02d", timerSeconds/60)+":"+String.format("%02d", timerSeconds%60) else "Send Verification Code")
+                        text = if (isTimerRunning) countDownFlow.value else "Send Verification Code")
                 }
 
             }
@@ -223,18 +216,13 @@ fun VerificationPage(navController: NavHostController, authViewModel: AuthViewMo
                 }
             }
         }
-
     }
 
-    LaunchedEffect(timerSeconds) {
-        if (timerSeconds == 0) {
-            isTimerRunning = false
-            enabled = true
-        } else {
-            delay(1000)
-            timerSeconds -= 1
-        }
+    if(countDownFlow.value=="Resend in 00:01") {
+        enabled = true
+        isTimerRunning = false
     }
+
 
     if(loading) {
         ProgressBar()

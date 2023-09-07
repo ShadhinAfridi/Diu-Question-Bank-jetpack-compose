@@ -1,6 +1,7 @@
 package com.fourdevs.diuquestionbank.repository
 
 import android.net.Uri
+import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -75,7 +76,7 @@ class QuestionRepositoryOnline @Inject constructor(
         token: String
     ): Flow<PagingData<Question>> {
         val pager = Pager(PagingConfig(pageSize = 10, prefetchDistance = 5)) {
-            UserPagingSource(apiClient, userId, token, questionDao)
+            UserPagingSource(apiClient, userId, token)
         }
 
         return pager.flow
@@ -89,7 +90,7 @@ class QuestionRepositoryOnline @Inject constructor(
         token: String
     ): Flow<PagingData<Question>> {
         val pager = Pager(PagingConfig(pageSize = 10, prefetchDistance = 5)) {
-            CoursePagingSource(apiClient, department, token, courseName, shift, exam, questionDao)
+            CoursePagingSource(apiClient, department, token, courseName, shift, exam)
         }
         return pager.flow
     }
@@ -109,6 +110,7 @@ class QuestionRepositoryOnline @Inject constructor(
         department: String,
         token: String
     ): Int {
+        Log.d("Afridi1", 4.toString())
         return apiClient.getQuestionCountByDepartment(department, token)
     }
 

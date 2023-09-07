@@ -1,6 +1,5 @@
 package com.fourdevs.diuquestionbank.ui.authentication
 
-import android.util.Log
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.text.KeyboardActions
@@ -141,7 +140,7 @@ private fun LogIn(
                             try {
                                 viewModel.getUserInfo(uid)
                             } catch (e: Exception) {
-                                Log.d("Afridi", e.message.toString())
+                                e.printStackTrace()
                             }
                             userInfo.value?.let { userInfo ->
                                 logInClicked = !logInClicked

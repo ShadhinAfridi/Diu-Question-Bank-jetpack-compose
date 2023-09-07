@@ -1,6 +1,5 @@
 package com.fourdevs.diuquestionbank.ui.components
 
-import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
@@ -43,9 +42,6 @@ import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
 import coil.memory.MemoryCache
 import coil.request.ImageRequest
-import com.fourdevs.diuquestionbank.ui.ads.AdmobBanner
-import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
-import com.google.android.gms.ads.AdSize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -59,13 +55,11 @@ import kotlin.math.sqrt
 fun PdfViewerScreen(
     fileName: String?,
     id: String?,
-    navController: NavHostController,
-    userViewModel: UserViewModel
+    navController: NavHostController
 ) {
     val rootPath = File(LocalContext.current.cacheDir, "/Questions")
     val file = File(rootPath, fileName!!)
     val uri = file.toUri()
-    val activity = LocalContext.current as Activity
 
     Scaffold(
         topBar = {
@@ -73,10 +67,9 @@ fun PdfViewerScreen(
         }
     ) {
         Box(modifier = Modifier.padding(it)) {
-            PdfViewer(uri = uri, userViewModel = userViewModel)
+            PdfViewer(uri = uri)
         }
     }
-
 
 }
 
@@ -84,7 +77,6 @@ fun PdfViewerScreen(
 fun PdfViewer(
     modifier: Modifier = Modifier,
     uri: Uri,
-    userViewModel: UserViewModel,
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(8.dp)
 ) {
     var scale by remember { mutableFloatStateOf(1f) }

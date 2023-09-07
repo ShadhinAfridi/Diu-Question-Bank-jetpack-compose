@@ -193,7 +193,10 @@ fun EditProfile(userViewModel: UserViewModel) {
                         },
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
-                            .background(color = MaterialTheme.colorScheme.surfaceVariant, shape = CircleShape)
+                            .background(
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                shape = CircleShape
+                            )
                             .size(48.dp)
                     ) {
                         Icon(
@@ -279,24 +282,31 @@ fun TextFiledWithUnderLine(
 ) {
     TextField(
         value = value,
-        onValueChange = { onValueChange(it) },
+        onValueChange = {
+            onValueChange(it)
+        },
         modifier = modifier
             .fillMaxWidth()
-            .wrapContentHeight()
             .padding(vertical = 10.dp, horizontal = 10.dp),
         label = { Text(text = label) },
         readOnly = readonly,
-        leadingIcon = { Icon(imageVector = icon, contentDescription = label) },
+        leadingIcon = {
+            Icon(
+                imageVector = icon,
+                contentDescription = label
+            )
+        },
         colors = TextFieldDefaults.colors(
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent,
-            disabledIndicatorColor = Color.Transparent,
-            focusedLabelColor = MaterialTheme.colorScheme.surfaceVariant,
-            unfocusedLabelColor = MaterialTheme.colorScheme.surfaceVariant,
-            disabledLabelColor = MaterialTheme.colorScheme.surfaceVariant,
+            focusedContainerColor = Color.Transparent,
+            unfocusedContainerColor = Color.Transparent,
+            errorContainerColor = Color.Transparent,
+            disabledContainerColor = Color.Transparent,
+            unfocusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
+            unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
         ),
-        keyboardOptions = keyboardOptions,
+        keyboardOptions = keyboardOptions
     )
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -326,12 +336,12 @@ fun DropDownDepartment(department: String, onValueChange: (String) -> Unit) {
             label = { Text(text = "Department") },
             trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
             colors = TextFieldDefaults.colors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                focusedLabelColor = MaterialTheme.colorScheme.surfaceVariant,
-                unfocusedLabelColor = MaterialTheme.colorScheme.surfaceVariant,
-                disabledLabelColor = MaterialTheme.colorScheme.surfaceVariant,
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                errorContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                unfocusedIndicatorColor = MaterialTheme.colorScheme.onBackground,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onBackground,
             ),
             leadingIcon = {
                 Icon(

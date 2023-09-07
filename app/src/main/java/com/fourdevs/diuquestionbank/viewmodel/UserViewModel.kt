@@ -1,12 +1,16 @@
 package com.fourdevs.diuquestionbank.viewmodel
 
 import android.app.Activity
+import android.content.Context
 import android.graphics.Bitmap
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.fourdevs.diuquestionbank.data.Question
+import com.fourdevs.diuquestionbank.models.HelpRequest
 import com.fourdevs.diuquestionbank.models.UserInfo
 import com.fourdevs.diuquestionbank.repository.UserRepository
 import com.fourdevs.diuquestionbank.utilities.Constants
@@ -14,8 +18,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 
 @HiltViewModel
 class UserViewModel @Inject constructor(
@@ -28,11 +34,12 @@ class UserViewModel @Inject constructor(
     private val _userInfoFlow = MutableStateFlow<UserInfo?>(null)
     val userInfoFlow = _userInfoFlow.asStateFlow()
 
-    var questions: Flow<PagingData<Question>>? = null
+    private val _addHelpFlow = MutableStateFlow(true)
+    val addHelpFlow = _addHelpFlow.asStateFlow()
 
-    val token = userRepository.getString(Constants.KEY_USER_TOKEN)
+    var questions: Flow<PagingData<Question>> = emptyFlow()
 
-    private val _systemThemeFlow = MutableStateFlow(userRepository.getBoolean(Constants.KEY_SYSTEM_MODE))
+    private val _systemThemeFlow = MutableStateFlow(userRepository.getThemeBoolean(Constants.KEY_SYSTEM_MODE))
     val systemThemeFlow = _systemThemeFlow.asStateFlow()
 
     fun updateTheme(systemTheme:Boolean) {
@@ -64,13 +71,7 @@ class UserViewModel @Inject constructor(
         userRepository.putString(key, value)
     }
 
-    fun putBoolean(key:String, value:Boolean) {
-        userRepository.putBoolean(key, value)
-    }
-
     fun getString(key: String) : String? = userRepository.getString(key)
-
-    fun getBoolean(key: String) : Boolean = userRepository.getBoolean(key)
 
     fun bitmapFromEncodedString(encodedImage: String): Bitmap {
         return userRepository.bitmapFromEncodedString(encodedImage)
@@ -82,7 +83,7 @@ class UserViewModel @Inject constructor(
 
     fun getQuestionsByUser(userId: String) = viewModelScope.launch {
         try {
-            token?.let {
+            userRepository.getString(Constants.KEY_USER_TOKEN)?.let {
                 questions =
                     userRepository.getQuestionsByUser(userId, it).cachedIn(viewModelScope)
             }
@@ -103,6 +104,31 @@ class UserViewModel @Inject constructor(
     fun checkPermissions() = userRepository.checkPermissions()
     fun askPermission(activity: Activity) {
         userRepository.askPermission(activity)
+    }
+
+    fun checkInternetConnection() = userRepository.checkInternetConnection()
+
+    fun addHelpRequest(helpRequest: HelpRequest) = viewModelScope.launch {
+        userRepository.addHelpResponse(helpRequest) {
+            _addHelpFlow.value = it
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.P)
+    fun checkForAppUpdates(context: Context, updateListener: (Boolean) -> Unit) {
+
+        val pInfo = context.packageManager.getPackageInfo(Constants.KEY_PACKAGE_NAME, 0)
+
+        val versionCode = pInfo.longVersionCode.toInt()
+
+        userRepository.getVersionCode {
+            if(it > versionCode) {
+                updateListener(true)
+            } else {
+                updateListener(false)
+            }
+        }
+
     }
 
 

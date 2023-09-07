@@ -3,7 +3,6 @@ package com.fourdevs.diuquestionbank.ui.components
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -30,15 +29,9 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -50,9 +43,9 @@ import com.fourdevs.diuquestionbank.ui.navigation.AuthNav
 import com.fourdevs.diuquestionbank.ui.navigation.ContactUs
 import com.fourdevs.diuquestionbank.ui.navigation.Help
 import com.fourdevs.diuquestionbank.ui.navigation.Menu
+import com.fourdevs.diuquestionbank.utilities.Constants
 import com.fourdevs.diuquestionbank.viewmodel.AuthViewModel
 import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
-import kotlinx.coroutines.launch
 
 @Composable
 fun MenuScreen(
@@ -79,16 +72,15 @@ fun MenuItem(
     authViewModel: AuthViewModel
 ) {
 
-    val context = LocalContext.current
-    val packageName = "com.fourdevs.diuquestionbank"
-    val link = "https://techerax.com/"
+
+    val link = "https://techerax.com/privacy-policy-for-diu-question-bank/"
     val joinUs = "https://forms.gle/thaSvMkraDACDd9c6"
 
     val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
     val joinUsIntent = Intent(Intent.ACTION_VIEW, Uri.parse(joinUs))
 
     val playStoreIntent = Intent(Intent.ACTION_VIEW).apply {
-        data = Uri.parse("market://details?id=$packageName")
+        data = Uri.parse("market://details?id=${Constants.KEY_PACKAGE_NAME}")
         setPackage("com.android.vending") // Use the Play Store's package name
     }
 

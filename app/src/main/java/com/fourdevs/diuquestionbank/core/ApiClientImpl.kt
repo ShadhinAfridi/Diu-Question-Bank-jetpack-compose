@@ -1,6 +1,6 @@
 package com.fourdevs.diuquestionbank.core
 
-import android.util.Log
+import com.fourdevs.diuquestionbank.BuildConfig
 import com.fourdevs.diuquestionbank.data.Question
 import com.fourdevs.diuquestionbank.data.QuestionsResponse
 import com.fourdevs.diuquestionbank.data.Resource
@@ -25,13 +25,10 @@ import javax.inject.Inject
 class ApiClientImpl @Inject constructor(
     private val client: HttpClient
 ) : ApiClient {
-    private val apiKey = "123456789"
-    private val keyName = "x-api-key"
-    private val baseUrl = "https://app.techerax.com"
 
-    private var count = 0
-    private var count1 = 0
-
+    private val apiKey = BuildConfig.API_KEY
+    private val keyName = BuildConfig.API_KEY_NAME
+    private val baseUrl = BuildConfig.BASE_URL
 
     override suspend fun getUserById(id: String): ApiUserResponse {
         return client
@@ -219,7 +216,7 @@ class ApiClientImpl @Inject constructor(
         token: String
     ) {
         try {
-            val result = client.patch("$baseUrl/questions/") {
+            client.patch("$baseUrl/questions/") {
                 headers {
                     append(Authorization, "Bearer $token")
                 }
@@ -231,12 +228,8 @@ class ApiClientImpl @Inject constructor(
                     }""".trimMargin()
                 )
             }.await<ApiResponse>()
-
-            Log.d("Afridi ${count1++}", result.toString())
-
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.d("Afridi ${count++}", e.message!!)
         }
     }
 
@@ -303,10 +296,8 @@ class ApiClientImpl @Inject constructor(
 
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.d("Afridi", e.message!!)
             e.message!!
         }
-
     }
 
     override suspend fun getUserInfo(id: String): UserInfo? {
@@ -322,14 +313,14 @@ class ApiClientImpl @Inject constructor(
             return if(result.success == 1) {
                 result.data
             } else {
-                Log.d("Afridi", result.success.toString())
                 null
             }
 
         } catch (e: Exception) {
-            Log.d("Afridi", e.message!!)
             e.printStackTrace()
-            null
+            val useInfo = UserInfo(id, "", "", "", 0, 0, 0)
+            createUserInfo(useInfo)
+            useInfo
         }
 
     }
@@ -376,7 +367,6 @@ class ApiClientImpl @Inject constructor(
 
         } catch (e: Exception) {
             e.printStackTrace()
-            Log.d("Afridi", e.message!!)
             e.message!!
         }
     }

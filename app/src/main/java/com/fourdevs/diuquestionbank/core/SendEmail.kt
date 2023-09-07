@@ -1,5 +1,6 @@
 package com.fourdevs.diuquestionbank.core
 
+import com.fourdevs.diuquestionbank.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Properties
@@ -14,8 +15,8 @@ import javax.mail.internet.MimeMessage
 
 
 class SendEmail @Inject constructor() {
-    private val email = "reply.diuquestionbank@gmail.com"
-    private val password = "mzssrgthlscxkfco"
+    private val email = BuildConfig.EMAIL
+    private val password = BuildConfig.PASSWORD
     private val props = Properties().apply {
         this["mail.smtp.host"] = "smtp.gmail.com"
         this["mail.smtp.socketFactory.port"] = "465"
@@ -34,11 +35,11 @@ class SendEmail @Inject constructor() {
         val subject = "Verification Code"
         val email = """
             <p>Dear $recipientName,</p>
-            <p>Thank you for registering an account with us. To complete your registration, please verify your email address by entering the verification code provided below:</p>
+            <p>We're glad you made an account with us. To finish signing up, please confirm your email address by typing the verification code below:</p>
             <p><strong>Verification Code:</strong> <span class="verification-code">$otp</span></p>
-            <p>Please enter the verification code in the designated field on the registration page to activate your account. If you did not sign up for an account, please disregard this email.</p>
-            <p>If you have any questions or need further assistance, please feel free to contact our support team at <a href="mailto:diuquestionbank@gmail.com">diuquestionbank@gmail.com</a>.</p>
-            <p>Thank you for your cooperation.</p>
+            <p>To confirm your account, please enter the verification code in the space provided on the register page. Delete this email if you didn't sign up for an account.</p>
+            <p>Please feel free to contact our support team at if you have any questions or need more help <a href="mailto:diuquestionbank@gmail.com">diuquestionbank@gmail.com</a>.</p>
+            <p>We appreciate your willingness to collaborate.</p>
         """.trimIndent()
         emailBody(recipientEmail, subject, emailBody(subject, email))
     }
@@ -47,11 +48,11 @@ class SendEmail @Inject constructor() {
         val subject = "Reset Password"
         val email = """
             <p>Dear $recipientEmail,</p>
-            <p>We have received a request to reset the password associated with your account. To ensure the security of your account, we require you to verify your identity by providing the verification code provided below.</p>
-            <p>Please enter the verification code in the designated field on the password reset form. If you did not initiate this password reset request, please disregard this email.</p>
+            <p>We've gotten a request to change the password for your account. In order to keep your account safe, we need you to prove who you are by entering the verification code shown below.</p>
+            <p>Please put the verification code in the field on the form where it says to do so. If you did not send this request to change your password, please delete this email.</p>
             <p><strong>Verification Code:</strong> <span class="verification-code">$otp</span></p>
-            <p>If you have any questions or need further assistance, please feel free to contact our support team at <a href="mailto:diuquestionbank@gmail.com">diuquestionbank@gmail.com</a>.</p>
-            <p>Thank you for your cooperation.</p>
+            <p>Please feel free to contact our support team at if you have any questions or need more help <a href="mailto:diuquestionbank@gmail.com">diuquestionbank@gmail.com</a>.</p>
+            <p>We appreciate your willingness to collaborate.</p>
         """.trimIndent()
 
         emailBody(recipientEmail, subject, emailBody(subject, email))
@@ -172,9 +173,6 @@ class SendEmail @Inject constructor() {
                          <p>Best regards,</p>
                          <p>DIU Question Bank<br>diuquestionbank@gmail.com</p>
                      </div>
-                 </div>
-                 <div class="logo">
-                     <img src="https://diuquestionbank.xyz/wp-content/uploads/2022/11/baner-Recovered-Recovered2.jpg" alt="Logo">
                  </div>
              </body>
              </html>

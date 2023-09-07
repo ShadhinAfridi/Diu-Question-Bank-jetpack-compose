@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.fourdevs.diuquestionbank.R
 import com.fourdevs.diuquestionbank.ui.ads.AdmobBanner
+import com.fourdevs.diuquestionbank.ui.authentication.showToast
 import com.fourdevs.diuquestionbank.ui.navigation.CourseList
 import com.fourdevs.diuquestionbank.viewmodel.UserViewModel
 import com.google.android.gms.ads.AdSize
@@ -53,6 +54,9 @@ fun DepartmentScreen(
         mutableStateOf("")
     }
     val context = LocalContext.current
+    if(!userViewModel.checkInternetConnection()) {
+        showToast(context, "No internet!")
+    }
 
     Scaffold(
         topBar = {
@@ -89,9 +93,7 @@ fun DepartmentScreen(
                 ) { selectedText ->
                     exam = selectedText
                 }
-                HomeCard {
-                    AdmobBanner(modifier = Modifier.fillMaxWidth(), adSize = AdSize.MEDIUM_RECTANGLE, userViewModel)
-                }
+                AdmobBanner(modifier = Modifier.fillMaxWidth(), adSize = AdSize.MEDIUM_RECTANGLE, userViewModel)
             }
 
             NextButton(

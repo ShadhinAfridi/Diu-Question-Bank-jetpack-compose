@@ -1,7 +1,7 @@
 package com.fourdevs.diuquestionbank.viewmodel
 
 import android.graphics.Bitmap
-import android.util.Log
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fourdevs.diuquestionbank.data.Resource
@@ -11,6 +11,7 @@ import com.fourdevs.diuquestionbank.utilities.Constants
 import com.google.firebase.auth.FirebaseUser
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -36,6 +37,12 @@ class AuthViewModel @Inject constructor(
 
     private val _userInfoFlow = MutableStateFlow<UserInfo?>(null)
     val userInfoFlow = _userInfoFlow.asStateFlow()
+
+    private val _countDownFlow = MutableStateFlow("Resend in 02:00")
+    val countDownFlow = _countDownFlow.asStateFlow()
+
+
+    private val timerSeconds =  mutableIntStateOf(120)
 
 
 
@@ -81,7 +88,6 @@ class AuthViewModel @Inject constructor(
 
     fun getIdToken(user: FirebaseUser) = viewModelScope.launch{
         val result = repository.getIdToken(user)
-        Log.d("Afridi", result)
         putString(Constants.KEY_USER_TOKEN, result)
     }
 
@@ -134,6 +140,19 @@ class AuthViewModel @Inject constructor(
 
     fun bitmapFromEncodedString(encodedImage: String): Bitmap {
         return repository.bitmapFromEncodedString(encodedImage)
+    }
+
+    fun startCountDown() = viewModelScope.launch {
+        timerSeconds.intValue = 120
+        while (timerSeconds.intValue > 0) {
+            delay(1000)
+            timerSeconds.intValue -= 1
+            // Update the UI with the countdown timer
+            _countDownFlow.value = "Resend in " +
+                    String.format("%02d", timerSeconds.intValue / 60) +
+                    ":" +
+                    String.format("%02d", timerSeconds.intValue % 60)
+        }
     }
 
 

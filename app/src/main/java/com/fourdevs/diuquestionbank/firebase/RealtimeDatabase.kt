@@ -13,7 +13,7 @@ class RealtimeDatabase @Inject constructor() {
     private val bannerQuery = database.child("banner")
     private val interstitialQuery = database.child("interstitial")
     private val openAppQuery = database.child("openapp")
-    val TAG = "Afridi"
+    private val settingsQuery = database.child("setting")
 
 
     fun fetchBannerAdId(callback: (String?) -> Unit) {
@@ -58,6 +58,21 @@ class RealtimeDatabase @Inject constructor() {
 
                 override fun onCancelled(databaseError: DatabaseError) {
                     callback(null)
+                }
+            })
+    }
+
+    fun getVersionCode(versionCode: (Int) -> Unit) {
+        settingsQuery.child("versionCode")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(dataSnapshot: DataSnapshot) {
+                    val version = dataSnapshot.getValue(Int::class.java)
+                    version?.let{
+                        versionCode(it)
+                    }
+                }
+                override fun onCancelled(databaseError: DatabaseError) {
+                    versionCode(0)
                 }
             })
     }
